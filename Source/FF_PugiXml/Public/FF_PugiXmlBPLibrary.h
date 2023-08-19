@@ -33,7 +33,13 @@ class UFF_PugiXmlBPLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_UCLASS_BODY()
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "PugiXml - Create Document", Keywords = "pugixml, xml, document, create"), Category = "FF_PugiXml")
-	static void PugiXml_Create_Doc(UFFPugiXml_Doc*& Out_Doc, FString CustomDeclaration, bool bAddDeclaration = true);
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Create Document", Keywords = "pugixml, xml, document, create"), Category = "FF_PugiXml")
+	static void PugiXml_Doc_Create(UFFPugiXml_Doc*& Out_Doc, FString CustomDeclaration, bool bAddDeclaration = true);
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Print Document", Keywords = "pugixml, xml, document, create"), Category = "FF_PugiXml")
+	static bool PugiXml_Doc_Print(UFFPugiXml_Doc* In_Doc, FString& Out_String);
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node", Keywords = "pugixml, xml, document, add, node"), Category = "FF_PugiXml")
+	static bool PugiXml_Add_Node(UPARAM(ref)UFFPugiXml_Doc* In_Doc, FString NodeName, FString NodeValue);
 
 };
