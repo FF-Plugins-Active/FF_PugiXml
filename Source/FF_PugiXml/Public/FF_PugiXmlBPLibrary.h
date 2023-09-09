@@ -28,10 +28,28 @@ public:
 
 };
 
+USTRUCT(BlueprintType)
+struct FDeflateUncompressed
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(BlueprintReadWrite)
+	TArray<uint8> UncompressedBuffer;
+
+};
+
+UDELEGATE(BlueprintAuthorityOnly)
+DECLARE_DYNAMIC_DELEGATE_ThreeParams(FDelegateDeflate, bool, bIsSuccessful, FDeflateUncompressed, Out_Bytes, FString, Out_Code);
+
 UCLASS()
 class UFF_PugiXmlBPLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_UCLASS_BODY()
+
+	//UFUNCTION(BlueprintCallable, meta = (DisplayName = "Libdeflate - Test", Keywords = "libdeflate, deflate, gzip, zlib, compression, compress"), Category = "FF_PugiXml")
+	static void LibDeflateTest(FDelegateDeflate DelegateDeflate, TArray<uint8> In_Bytes);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Create Document", Keywords = "pugixml, xml, document, create"), Category = "FF_PugiXml")
 	static void PugiXml_Doc_Create(UFFPugiXml_Doc*& Out_Doc, FString CustomDeclaration, bool bAddDeclaration = true);

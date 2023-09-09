@@ -13,6 +13,14 @@ public class FF_PugiXml : ModuleRules
         string Location_PugiXml = "../Source/FF_PugiXml/ThirdParty/pugixml";
         PrivateIncludePaths.Add(Location_PugiXml);
 
+        if (UnrealTargetPlatform.Win64 == Target.Platform)
+        {
+            string Location_Libdeflate = "../Source/FF_PugiXml/ThirdParty/libdeflate/Windows/include";
+            PrivateIncludePaths.Add(Location_Libdeflate);
+
+            PublicAdditionalLibraries.Add(Path.Combine(ModuleDirectory, "ThirdParty", "libdeflate", "Windows", "lib", "deflatestatic.lib"));
+        }
+
         PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
