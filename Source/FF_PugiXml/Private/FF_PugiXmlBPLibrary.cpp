@@ -180,16 +180,15 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Add_Node(UFFPugiXml_Node*& Out_Node, UFFPugiX
 
 	if (IsValid(Parent_Node))
 	{
-		Out_Node->Node = Parent_Node->Node.append_child(node_element);
+		Out_Node->Node = Parent_Node->Node.append_child(TCHAR_TO_UTF8(*NodeName));
 	}
 
 	else
 	{
-		Out_Node->Node = In_Doc->Root.append_child(node_element);
+		Out_Node->Node = In_Doc->Root.append_child(TCHAR_TO_UTF8(*NodeName));
 	}
 
-	Out_Node->Node.set_name(TCHAR_TO_UTF8(*NodeName));
-	Out_Node->Node.set_value(TCHAR_TO_UTF8(*NodeValue));
+	Out_Node->Node.append_child(node_pcdata).set_value(TCHAR_TO_UTF8(*NodeValue));
 
 	TArray<FString> Attribute_Names;
 	Attributes.GenerateKeyArray(Attribute_Names);
