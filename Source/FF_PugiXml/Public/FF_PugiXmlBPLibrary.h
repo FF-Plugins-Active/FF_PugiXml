@@ -5,6 +5,8 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 
 THIRD_PARTY_INCLUDES_START
+//#define PUGIXML_WCHAR_MODE
+//#define pugi pugiw
 #include "pugixml.hpp"
 THIRD_PARTY_INCLUDES_END
 
@@ -25,7 +27,17 @@ class FF_PUGIXML_API UFFPugiXml_Doc : public UObject
 public:
 
 	xml_document Document;
+	xml_node Root;
+};
 
+UCLASS(BlueprintType)
+class FF_PUGIXML_API UFFPugiXml_Node : public UObject
+{
+	GENERATED_BODY()
+
+public:
+
+	xml_node Node;
 };
 
 USTRUCT(BlueprintType)
@@ -52,12 +64,15 @@ class UFF_PugiXmlBPLibrary : public UBlueprintFunctionLibrary
 	static void LibDeflateTest(FDelegateDeflate DelegateDeflate, TArray<uint8> In_Bytes);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Create Document", Keywords = "pugixml, xml, document, create"), Category = "FF_PugiXml")
-	static void PugiXml_Doc_Create(UFFPugiXml_Doc*& Out_Doc, FString CustomDeclaration, bool bAddDeclaration = true);
+	static void PugiXml_Doc_Create(UFFPugiXml_Doc*& Out_Doc, FString RootName, FString DoctypeName, bool bIsStandalone, bool bAddDoctype);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Print Document", Keywords = "pugixml, xml, document, create"), Category = "FF_PugiXml")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Print Document", Keywords = "pugixml, xml, document, print"), Category = "FF_PugiXml")
 	static bool PugiXml_Doc_Print(UFFPugiXml_Doc* In_Doc, FString& Out_String);
 
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Save Document", Keywords = "pugixml, xml, document, save"), Category = "FF_PugiXml")
+	static bool PugiXml_Doc_Save(UFFPugiXml_Doc* In_Doc, FString In_Path);
+
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node", Keywords = "pugixml, xml, document, add, node"), Category = "FF_PugiXml")
-	static bool PugiXml_Add_Node(UPARAM(ref)UFFPugiXml_Doc* In_Doc, FString NodeName, FString NodeValue);
+	static bool PugiXml_Add_Node(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString NodeName, FString NodeValue, TMap<FString, FString> Attributes);
 
 };
