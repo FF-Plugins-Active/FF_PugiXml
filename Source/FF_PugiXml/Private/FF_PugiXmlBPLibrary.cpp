@@ -115,6 +115,112 @@ void UFF_PugiXmlBPLibrary::LibDeflateTest(FDelegateDeflate DelegateDeflate, TArr
 #endif // _WIN64
 }
 
+bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Open_File(UFFPugiXml_Doc*& Out_Doc, FString In_Path)
+{
+	if (In_Path.IsEmpty())
+	{
+		return false;
+	}
+
+	FPaths::MakeStandardFilename(In_Path);
+	if (!FPaths::FileExists(In_Path))
+	{
+		return false;
+	}
+
+	Out_Doc = NewObject<UFFPugiXml_Doc>();
+	xml_parse_result Result = Out_Doc->Document.load_file(TCHAR_TO_UTF8(*In_Path));
+
+	if (Result.status == xml_parse_status::status_ok)
+	{
+		return true;
+	}
+
+	else
+	{
+		return false;
+	}
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Open_Memory(UFFPugiXml_Doc*& Out_Doc, TArray<uint8> In_Buffer)
+{
+	if (In_Buffer.Num() == 0)
+	{
+		return false;
+	}
+
+	Out_Doc = NewObject<UFFPugiXml_Doc>();
+	xml_parse_result Result = Out_Doc->Document.load_buffer(In_Buffer.GetData(), In_Buffer.Num());
+
+	if (Result.status == xml_parse_status::status_ok)
+	{
+		return true;
+	}
+
+	else
+	{
+		return false;
+	}
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Open_String(UFFPugiXml_Doc*& Out_Doc, FString In_String)
+{
+	if (In_String.IsEmpty())
+	{
+		return false;
+	}
+
+	Out_Doc = NewObject<UFFPugiXml_Doc>();
+	xml_parse_result Result = Out_Doc->Document.load_string(TCHAR_TO_UTF8(*In_String));
+
+	if (Result.status == xml_parse_status::status_ok)
+	{
+		return true;
+	}
+
+	else
+	{
+		return false;
+	}
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Print(UFFPugiXml_Doc* In_Doc, FString& Out_String)
+{
+	if (!IsValid(In_Doc))
+	{
+		return false;
+	}
+
+	std::stringstream StringStream;
+	In_Doc->Document.print(StringStream, "  ");
+
+	Out_String = UTF8_TO_TCHAR(std::string(StringStream.str()).c_str());
+
+	return true;
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Save(UFFPugiXml_Doc* In_Doc, FString In_Path)
+{
+	if (!IsValid(In_Doc))
+	{
+		return false;
+	}
+
+	if (In_Path.IsEmpty())
+	{
+		return false;
+	}
+
+	std::stringstream StringStream;
+	In_Doc->Document.print(StringStream, "  ");
+
+	std::ofstream OutFile(TCHAR_TO_UTF8(*In_Path));
+	OutFile << StringStream.str();
+	OutFile.close();
+
+	return true;
+}
+
 void UFF_PugiXmlBPLibrary::PugiXml_Doc_Create(UFFPugiXml_Doc*& Out_Doc, FString RootName, FString DoctypeName, bool bIsStandalone, bool bAddDoctype)
 {
 	Out_Doc = NewObject<UFFPugiXml_Doc>();
@@ -135,38 +241,6 @@ void UFF_PugiXmlBPLibrary::PugiXml_Doc_Create(UFFPugiXml_Doc*& Out_Doc, FString 
 	Out_Doc->Root = Out_Doc->Document.append_child(TCHAR_TO_UTF8(*RootName));
 	Out_Doc->Root.append_attribute("xmlns:xsd") = "http://www.w3.org/2001/XMLSchema";
 	Out_Doc->Root.append_attribute("xmlns:xsi") = "http://www.w3.org/2001/XMLSchema-instance";
-}
-
-bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Print(UFFPugiXml_Doc* In_Doc, FString& Out_String)
-{
-	if (!IsValid(In_Doc))
-	{
-		return false;
-	}
-	
-	std::stringstream StringStream; 
-	In_Doc->Document.print(StringStream, "  ");
-
-	Out_String = UTF8_TO_TCHAR(std::string(StringStream.str()).c_str());
-
-	return true;
-}
-
-bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Save(UFFPugiXml_Doc* In_Doc, FString In_Path)
-{
-	if (!IsValid(In_Doc))
-	{
-		return false;
-	}
-
-	std::stringstream StringStream;
-	In_Doc->Document.print(StringStream, "  ");
-
-	std::ofstream OutFile(TCHAR_TO_UTF8(*In_Path));
-	OutFile << StringStream.str();
-	OutFile.close();
-
-	return true;
 }
 
 bool UFF_PugiXmlBPLibrary::PugiXml_Add_Node(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString NodeName, FString NodeValue, TMap<FString, FString> Attributes)
@@ -201,4 +275,42 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Add_Node(UFFPugiXml_Node*& Out_Node, UFFPugiX
 	}
 
 	return true;
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Get_Children(TArray<UFFPugiXml_Node*>& Out_Children, UObject* Target_Object)
+{
+	if (!IsValid(Target_Object))
+	{
+		return false;
+	}
+
+	UFFPugiXml_Doc* Target_Document = Cast<UFFPugiXml_Doc>(Target_Object);
+	if (Target_Document && Target_Document->Document)
+	{
+		for (xml_node Each_Node : Target_Document->Document.children())
+		{
+			UFFPugiXml_Node* Each_Node_Object = NewObject<UFFPugiXml_Node>();
+			Each_Node_Object->Node = Each_Node;
+
+			Out_Children.Add(Each_Node_Object);
+		}
+
+		return true;
+	}
+
+	UFFPugiXml_Node* Target_Node = Cast<UFFPugiXml_Node>(Target_Object);
+	if (Target_Node && Target_Node->Node)
+	{
+		for (xml_node Each_Node : Target_Node->Node.children())
+		{
+			UFFPugiXml_Node* Each_Node_Object = NewObject<UFFPugiXml_Node>();
+			Each_Node_Object->Node = Each_Node;
+
+			Out_Children.Add(Each_Node_Object);
+		}
+
+		return true;
+	}
+
+	return false;
 }
