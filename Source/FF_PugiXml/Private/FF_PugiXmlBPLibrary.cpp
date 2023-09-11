@@ -238,7 +238,8 @@ void UFF_PugiXmlBPLibrary::PugiXml_Doc_Create(UFFPugiXml_Doc*& Out_Doc, FString 
 		Out_Doc->Document.append_child(node_comment).set_value("--XML--");
 	}
 
-	Out_Doc->Root = Out_Doc->Document.append_child(TCHAR_TO_UTF8(*RootName));
+	Out_Doc->Root = Out_Doc->Document.append_child(node_element);
+	Out_Doc->Root.set_name(TCHAR_TO_UTF8(*RootName));
 	Out_Doc->Root.append_attribute("xmlns:xsd") = "http://www.w3.org/2001/XMLSchema";
 	Out_Doc->Root.append_attribute("xmlns:xsi") = "http://www.w3.org/2001/XMLSchema-instance";
 }
@@ -254,15 +255,23 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Add_Node(UFFPugiXml_Node*& Out_Node, UFFPugiX
 
 	if (IsValid(Parent_Node))
 	{
-		Out_Node->Node = Parent_Node->Node.append_child(TCHAR_TO_UTF8(*NodeName));
+		Out_Node->Node = Parent_Node->Node.append_child(node_element);
 	}
 
 	else
 	{
-		Out_Node->Node = In_Doc->Root.append_child(TCHAR_TO_UTF8(*NodeName));
+		Out_Node->Node = In_Doc->Root.append_child(node_element);
 	}
 
-	Out_Node->Node.append_child(node_pcdata).set_value(TCHAR_TO_UTF8(*NodeValue));
+	if (!NodeName.IsEmpty())
+	{
+		Out_Node->Node.set_name(TCHAR_TO_UTF8(*NodeName));
+	}
+
+	if (!NodeValue.IsEmpty())
+	{
+		Out_Node->Node.append_child(node_pcdata).set_value(TCHAR_TO_UTF8(*NodeValue));
+	}
 
 	TArray<FString> Attribute_Names;
 	Attributes.GenerateKeyArray(Attribute_Names);
@@ -310,6 +319,37 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Get_Children(TArray<UFFPugiXml_Node*>& Out_Ch
 		}
 
 		return true;
+	}
+
+	return false;
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Get_Name(FString& Out_Name, UFFPugiXml_Node* Target_Object)
+{
+	if (!IsValid(Target_Object))
+	{
+		return false;
+	}
+
+	Out_Name = Target_Object->Node.name();
+
+	return true;
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Get_Value(FString& Out_Value, UFFPugiXml_Node* Target_Object)
+{
+	if (!IsValid(Target_Object))
+	{
+		return false;
+	}
+
+	if (Target_Object->Node.type() == node_element)
+	{
+		if (Target_Object->Node.first_child().type() == node_pcdata)
+		{	
+			Out_Value = Target_Object->Node.first_child().value();
+			return true;
+		}
 	}
 
 	return false;
