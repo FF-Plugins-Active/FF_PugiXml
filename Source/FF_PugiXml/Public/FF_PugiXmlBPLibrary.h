@@ -1,4 +1,15 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+/*
+*	Copyright Epic Games, Inc. All Rights Reserved.
+* 
+*	PugiXml Binaries.
+*	https://github.com/zeux/pugixml
+*
+*	PugiXml Documentations.
+*	https://pugixml.org/docs/manual.html
+*
+*	Libdeflate Binaries.
+*	https://github.com/ebiggers/libdeflate
+*/
 
 #pragma once
 
@@ -13,14 +24,6 @@ THIRD_PARTY_INCLUDES_END
 #include "FF_PugiXmlBPLibrary.generated.h"
 
 using namespace pugi;
-
-/*
-*	PugiXml Binaries
-*	https://github.com/zeux/pugixml
-* 
-*	PugiXml Documentations
-*	https://pugixml.org/docs/manual.html
-*/
 
 UCLASS(BlueprintType)
 class FF_PUGIXML_API UFFPugiXml_Doc : public UObject
