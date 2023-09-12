@@ -12,7 +12,7 @@ THIRD_PARTY_INCLUDES_START
 #include <iostream>
 #include <fstream>
 
-#include "libdeflate.h"
+//#include "libdeflate.h"
 THIRD_PARTY_INCLUDES_END
 
 UFF_PugiXmlBPLibrary::UFF_PugiXmlBPLibrary(const FObjectInitializer& ObjectInitializer)
@@ -21,6 +21,7 @@ UFF_PugiXmlBPLibrary::UFF_PugiXmlBPLibrary(const FObjectInitializer& ObjectIniti
 
 }
 
+/*
 void UFF_PugiXmlBPLibrary::LibDeflateTest(FDelegateDeflate DelegateDeflate, TArray<uint8> In_Bytes)
 {
 #ifdef _WIN64
@@ -114,6 +115,7 @@ void UFF_PugiXmlBPLibrary::LibDeflateTest(FDelegateDeflate DelegateDeflate, TArr
 
 #endif // _WIN64
 }
+*/
 
 bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Open_File(UFFPugiXml_Doc*& Out_Doc, FString In_Path)
 {
@@ -230,21 +232,28 @@ void UFF_PugiXmlBPLibrary::PugiXml_Doc_Create(UFFPugiXml_Doc*& Out_Doc, FString 
 	Declaration.append_attribute("encoding") = "utf-8";
 	Declaration.append_attribute("standalone") = bIsStandalone ? "yes" : "no";
 
-	if (bAddDoctype)
+	if (bAddDoctype && !DoctypeName.IsEmpty())
 	{
+		// DTD delimiter comment.
 		Out_Doc->Document.append_child(node_comment).set_value("--DTD--");
+		
 		xml_node Doctype = Out_Doc->Document.append_child(node_doctype);
 		Doctype.set_value(TCHAR_TO_UTF8(*DoctypeName));
+		
+		// XML delimiter comment.
 		Out_Doc->Document.append_child(node_comment).set_value("--XML--");
 	}
 
-	Out_Doc->Root = Out_Doc->Document.append_child(node_element);
-	Out_Doc->Root.set_name(TCHAR_TO_UTF8(*RootName));
-	Out_Doc->Root.append_attribute("xmlns:xsd") = "http://www.w3.org/2001/XMLSchema";
-	Out_Doc->Root.append_attribute("xmlns:xsi") = "http://www.w3.org/2001/XMLSchema-instance";
+	if (!RootName.IsEmpty())
+	{
+		Out_Doc->Root = Out_Doc->Document.append_child(node_element);
+		Out_Doc->Root.set_name(TCHAR_TO_UTF8(*RootName));
+		Out_Doc->Root.append_attribute("xmlns:xsd") = "http://www.w3.org/2001/XMLSchema";
+		Out_Doc->Root.append_attribute("xmlns:xsi") = "http://www.w3.org/2001/XMLSchema-instance";
+	}
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Add_Node(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString NodeName, FString NodeValue, TMap<FString, FString> Attributes)
+bool UFF_PugiXmlBPLibrary::PugiXml_Add_Node_Element(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString NodeName, FString NodeValue, TMap<FString, FString> Attributes)
 {
 	if (!IsValid(In_Doc))
 	{
@@ -255,12 +264,30 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Add_Node(UFFPugiXml_Node*& Out_Node, UFFPugiX
 
 	if (IsValid(Parent_Node))
 	{
-		Out_Node->Node = Parent_Node->Node.append_child(node_element);
+		xml_node_type TargetNodeType = Parent_Node->Node.type();
+
+		if (TargetNodeType == node_document || TargetNodeType == node_element)
+		{
+			Out_Node->Node = Parent_Node->Node.append_child(node_element);
+		}
+
+		else
+		{
+			return false;
+		}
 	}
 
 	else
 	{
-		Out_Node->Node = In_Doc->Root.append_child(node_element);
+		if (In_Doc->Root)
+		{
+			Out_Node->Node = In_Doc->Root.append_child(node_element);
+		}
+
+		else
+		{
+			Out_Node->Node = In_Doc->Document.append_child(node_element);
+		}
 	}
 
 	if (!NodeName.IsEmpty())
@@ -298,10 +325,13 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Get_Children(TArray<UFFPugiXml_Node*>& Out_Ch
 	{
 		for (xml_node Each_Node : Target_Document->Document.children())
 		{
-			UFFPugiXml_Node* Each_Node_Object = NewObject<UFFPugiXml_Node>();
-			Each_Node_Object->Node = Each_Node;
+			if (Each_Node)
+			{
+				UFFPugiXml_Node* Each_Node_Object = NewObject<UFFPugiXml_Node>();
+				Each_Node_Object->Node = Each_Node;
 
-			Out_Children.Add(Each_Node_Object);
+				Out_Children.Add(Each_Node_Object);
+			}
 		}
 
 		return true;
@@ -310,47 +340,109 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Get_Children(TArray<UFFPugiXml_Node*>& Out_Ch
 	UFFPugiXml_Node* Target_Node = Cast<UFFPugiXml_Node>(Target_Object);
 	if (Target_Node && Target_Node->Node)
 	{
-		for (xml_node Each_Node : Target_Node->Node.children())
+		if (Target_Node->Node.type() == node_document || Target_Node->Node.type() == node_element)
 		{
-			UFFPugiXml_Node* Each_Node_Object = NewObject<UFFPugiXml_Node>();
-			Each_Node_Object->Node = Each_Node;
+			for (xml_node Each_Node : Target_Node->Node.children())
+			{
+				if (Each_Node)
+				{
+					UFFPugiXml_Node* Each_Node_Object = NewObject<UFFPugiXml_Node>();
+					Each_Node_Object->Node = Each_Node;
 
-			Out_Children.Add(Each_Node_Object);
+					Out_Children.Add(Each_Node_Object);
+				}
+			}
+
+			return true;
 		}
 
+		else
+		{
+			return false;
+		}
+	}
+
+	return false;
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Get_Name(FString& Out_Name, UFFPugiXml_Node* Target_Node)
+{
+	if (!IsValid(Target_Node))
+	{
+		return false;
+	}
+
+	xml_node_type TargetNodeType = Target_Node->Node.type();
+
+	if (TargetNodeType == node_element || TargetNodeType == node_pi || TargetNodeType == node_declaration)
+	{
+		Out_Name = Target_Node->Node.name();
+	}
+
+	return true;
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Get_Value(FString& Out_Value, UFFPugiXml_Node* Target_Node)
+{
+	if (!IsValid(Target_Node))
+	{
+		return false;
+	}
+
+	xml_node_type TargetNodeType = Target_Node->Node.type();
+
+	if (TargetNodeType == node_element)
+	{
+		if (!Target_Node->Node.first_child())
+		{
+			return false;
+		}
+
+		TargetNodeType = Target_Node->Node.first_child().type();
+		
+		if (TargetNodeType == node_pcdata || TargetNodeType == node_cdata || TargetNodeType == node_comment || TargetNodeType == node_pi || TargetNodeType == node_doctype)
+		{	
+			Out_Value = Target_Node->Node.first_child().value();
+			return true;
+		}
+	}
+
+	else if (TargetNodeType == node_pcdata || TargetNodeType == node_cdata || TargetNodeType == node_comment || TargetNodeType == node_pi || TargetNodeType == node_doctype)
+	{
+		Out_Value = Target_Node->Node.value();
 		return true;
 	}
 
 	return false;
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Get_Name(FString& Out_Name, UFFPugiXml_Node* Target_Object)
+bool UFF_PugiXmlBPLibrary::PugiXml_Get_Attributes(TMap<FString, FString>& Out_Attributes, UFFPugiXml_Node* Target_Node)
 {
-	if (!IsValid(Target_Object))
+	if (!IsValid(Target_Node))
 	{
 		return false;
 	}
 
-	Out_Name = Target_Object->Node.name();
+	xml_node_type TargetNodeType = Target_Node->Node.type();
 
-	return true;
-}
-
-bool UFF_PugiXmlBPLibrary::PugiXml_Get_Value(FString& Out_Value, UFFPugiXml_Node* Target_Object)
-{
-	if (!IsValid(Target_Object))
+	if (TargetNodeType == node_element || TargetNodeType == node_declaration)
 	{
-		return false;
-	}
+		for (xml_attribute Each_Attribute : Target_Node->Node.attributes())
+		{
+			if (Each_Attribute)
+			{
+				FString Attribute_Name = Each_Attribute.name();
+				FString Attribute_Value = Each_Attribute.value();
 
-	if (Target_Object->Node.type() == node_element)
-	{
-		if (Target_Object->Node.first_child().type() == node_pcdata)
-		{	
-			Out_Value = Target_Object->Node.first_child().value();
-			return true;
+				Out_Attributes.Add(Attribute_Name, Attribute_Value);
+			}
 		}
-	}
 
-	return false;
+		return true;
+	}
+	
+	else
+	{
+		return false;
+	}
 }

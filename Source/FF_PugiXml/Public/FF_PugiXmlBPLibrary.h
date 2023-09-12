@@ -17,6 +17,9 @@ using namespace pugi;
 /*
 *	PugiXml Binaries
 *	https://github.com/zeux/pugixml
+* 
+*	PugiXml Documentations
+*	https://pugixml.org/docs/manual.html
 */
 
 UCLASS(BlueprintType)
@@ -40,6 +43,7 @@ public:
 	xml_node Node;
 };
 
+/*
 USTRUCT(BlueprintType)
 struct FDeflateUncompressed
 {
@@ -52,16 +56,20 @@ public:
 
 };
 
+
 UDELEGATE(BlueprintAuthorityOnly)
 DECLARE_DYNAMIC_DELEGATE_ThreeParams(FDelegateDeflate, bool, bIsSuccessful, FDeflateUncompressed, Out_Bytes, FString, Out_Code);
+*/
 
 UCLASS()
 class UFF_PugiXmlBPLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_UCLASS_BODY()
 
-	//UFUNCTION(BlueprintCallable, meta = (DisplayName = "Libdeflate - Test", Keywords = "libdeflate, deflate, gzip, zlib, compression, compress"), Category = "FF_PugiXml")
+	/*
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Libdeflate - Test", Keywords = "libdeflate, deflate, gzip, zlib, compression, compress"), Category = "FF_PugiXml")
 	static void LibDeflateTest(FDelegateDeflate DelegateDeflate, TArray<uint8> In_Bytes);
+	*/
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Open Document from File", Keywords = "pugixml, xml, document, open, file"), Category = "FF_PugiXml|Open")
 	static bool PugiXml_Doc_Open_File(UFFPugiXml_Doc*& Out_Doc, FString In_Path);
@@ -81,16 +89,19 @@ class UFF_PugiXmlBPLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Create Document", Keywords = "pugixml, xml, document, create"), Category = "FF_PugiXml|Write")
 	static void PugiXml_Doc_Create(UFFPugiXml_Doc*& Out_Doc, FString RootName, FString DoctypeName, bool bIsStandalone, bool bAddDoctype);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node", Keywords = "pugixml, xml, document, add, node"), Category = "FF_PugiXml|Write")
-	static bool PugiXml_Add_Node(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString NodeName, FString NodeValue, TMap<FString, FString> Attributes);
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node Element", Keywords = "pugixml, xml, document, add, node"), Category = "FF_PugiXml|Write")
+	static bool PugiXml_Add_Node_Element(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString NodeName, FString NodeValue, TMap<FString, FString> Attributes);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Get Children", Keywords = "pugixml, xml, document, get, node, read, children"), Category = "FF_PugiXml|Parse")
 	static bool PugiXml_Get_Children(TArray<UFFPugiXml_Node*>& Out_Children, UObject* Target_Object);
 
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Get Name", Keywords = "pugixml, xml, document, get, node, read, name"), Category = "FF_PugiXml|Parse")
-	static bool PugiXml_Get_Name(FString& Out_Name, UFFPugiXml_Node* Target_Object);
+	static bool PugiXml_Get_Name(FString& Out_Name, UFFPugiXml_Node* Target_Node);
 
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Get Value", Keywords = "pugixml, xml, document, get, node, read, value"), Category = "FF_PugiXml|Parse")
-	static bool PugiXml_Get_Value(FString& Out_Value, UFFPugiXml_Node* Target_Object);
+	static bool PugiXml_Get_Value(FString& Out_Value, UFFPugiXml_Node* Target_Node);
+
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Get Attributes", Keywords = "pugixml, xml, document, get, node, read, attribute, attributes"), Category = "FF_PugiXml|Parse")
+	static bool PugiXml_Get_Attributes(TMap<FString, FString>& Out_Attributes, UFFPugiXml_Node* Target_Node);
 
 };
