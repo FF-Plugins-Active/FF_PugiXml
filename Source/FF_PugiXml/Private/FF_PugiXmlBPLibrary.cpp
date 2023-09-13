@@ -471,9 +471,9 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_cdata(UFFPugiXml_Node*& Out_Node, UF
 	return false;
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Node_Remove(UObject* Source, UFFPugiXml_Node* Delete_Target)
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Remove(UObject* Source, UPARAM(ref)UFFPugiXml_Node*& Delete_Target)
 {
-	if (IsValid(Source) && IsValid(Delete_Target))
+	if (!IsValid(Source) && !IsValid(Delete_Target))
 	{
 		return false;
 	}
@@ -488,7 +488,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Remove(UObject* Source, UFFPugiXml_Node*
 	if (IsValid(Source_Node) && Source_Node->Node && Delete_Target->Node)
 	{
 		xml_node_type SourceNodeType = Source_Node->Node.type();
-		if (SourceNodeType == node_document && SourceNodeType == node_element)
+		if (SourceNodeType == node_document || SourceNodeType == node_element)
 		{
 			return Source_Node->Node.remove_child(Delete_Target->Node);
 		}
@@ -700,6 +700,37 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Find_Child_By_Attribute(UFFPugiXml_Node*& Out
 	return false;
 }
 
+bool UFF_PugiXmlBPLibrary::PugiXml_Find_Parent(UFFPugiXml_Node*& Found_Parent, bool& bIsParentXml, UFFPugiXml_Node* Target_Node)
+{
+	if (!IsValid(Target_Node))
+	{
+		return false;
+	}
+
+	xml_node Parent = Target_Node->Node.parent();
+	if (!Parent)
+	{
+		return false;
+	}
+
+	xml_node_type ParentNodeType = Parent.type();
+
+	if (ParentNodeType == node_document)
+	{
+		bIsParentXml = true;
+		return true;
+	}
+
+	else if (ParentNodeType == node_element)
+	{
+		Found_Parent = NewObject<UFFPugiXml_Node>();
+		Found_Parent->Node = Parent;
+		return true;
+	}
+
+	return false;
+}
+
 bool UFF_PugiXmlBPLibrary::PugiXml_Get_Name(FString& Out_Name, UFFPugiXml_Node* Target_Node)
 {
 	if (!IsValid(Target_Node))
@@ -773,5 +804,25 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Get_Attributes(TMap<FString, FString>& Out_At
 	else
 	{
 		return false;
+	}
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Compare_Nodes(bool& bAreTheySame, UFFPugiXml_Node* First_Node, UFFPugiXml_Node* Second_Node)
+{
+	if (!IsValid(First_Node) && !IsValid(Second_Node))
+	{
+		return false;
+	}
+
+	if (First_Node->Node.hash_value() == Second_Node->Node.hash_value())
+	{
+		bAreTheySame = true;
+		return true;
+	}
+
+	else
+	{
+		bAreTheySame = false;
+		return true;
 	}
 }

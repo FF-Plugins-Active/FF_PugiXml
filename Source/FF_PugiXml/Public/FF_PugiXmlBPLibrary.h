@@ -47,7 +47,28 @@ class FF_PUGIXML_API UFFPugiXml_Node : public UObject
 public:
 
 	xml_node Node;
+
+	bool operator == (const UFFPugiXml_Node*& Other) const
+	{
+		return Node.hash_value() == Other->Node.hash_value();
+	}
+
+	bool operator != (const UFFPugiXml_Node*& Other) const
+	{
+		return !(*this == Other);
+	}
 };
+
+FORCEINLINE uint32 GetTypeHash(const UFFPugiXml_Node& Key)
+{
+	uint32_t Hash_Node = GetTypeHash((uint32_t)Key.Node.hash_value());
+
+	uint32_t GenericHash;
+	FMemory::Memset(&GenericHash, 0, sizeof(uint32_t));
+	GenericHash = HashCombine(GenericHash, Hash_Node);
+
+	return GenericHash;
+}
 
 /*
 USTRUCT(BlueprintType)
@@ -61,7 +82,6 @@ public:
 	TArray<uint8> UncompressedBuffer;
 
 };
-
 
 UDELEGATE(BlueprintAuthorityOnly)
 DECLARE_DYNAMIC_DELEGATE_ThreeParams(FDelegateDeflate, bool, bIsSuccessful, FDeflateUncompressed, Out_Bytes, FString, Out_Code);
@@ -111,7 +131,7 @@ class UFF_PugiXmlBPLibrary : public UBlueprintFunctionLibrary
 	static bool PugiXml_Node_Add_cdata(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString Comment);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Remove Node", Keywords = "pugixml, xml, document, node, remove"), Category = "FF_PugiXml|Write")
-	static bool PugiXml_Node_Remove(UObject* Source, UFFPugiXml_Node* Delete_Target);
+	static bool PugiXml_Node_Remove(UObject* Source, UPARAM(ref)UFFPugiXml_Node*& Delete_Target);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Get Children", Keywords = "pugixml, xml, document, get, node, read, child, children, all"), Category = "FF_PugiXml|Parse")
 	static bool PugiXml_Get_Children(TArray<UFFPugiXml_Node*>& Out_Children, UObject* Target_Object);
@@ -128,6 +148,9 @@ class UFF_PugiXmlBPLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Find Child by Attribute", Keywords = "pugixml, xml, document, get, node, read, child, children, find, attribute"), Category = "FF_PugiXml|Parse")
 	static bool PugiXml_Find_Child_By_Attribute(UFFPugiXml_Node*& Out_Sibling, UObject* Target_Object, FString Attribute_Name, FString Attribute_Value);
 
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Find Parent", Keywords = "pugixml, xml, document, get, node, read, parent, find"), Category = "FF_PugiXml|Parse")
+	static bool PugiXml_Find_Parent(UFFPugiXml_Node*& Found_Parent, bool& bIsParentXml, UFFPugiXml_Node* Target_Node);
+
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Get Name", Keywords = "pugixml, xml, document, get, node, read, name"), Category = "FF_PugiXml|Parse")
 	static bool PugiXml_Get_Name(FString& Out_Name, UFFPugiXml_Node* Target_Node);
 
@@ -136,5 +159,8 @@ class UFF_PugiXmlBPLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Get Attributes", Keywords = "pugixml, xml, document, get, node, read, attribute, attributes"), Category = "FF_PugiXml|Parse")
 	static bool PugiXml_Get_Attributes(TMap<FString, FString>& Out_Attributes, UFFPugiXml_Node* Target_Node);
+
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Compare Nodes", Keywords = "pugixml, xml, document, get, node, compare"), Category = "FF_PugiXml|Parse")
+	static bool PugiXml_Compare_Nodes(bool& bAreTheySame, UFFPugiXml_Node* First_Node, UFFPugiXml_Node* Second_Node);
 
 };
