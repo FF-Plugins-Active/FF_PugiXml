@@ -9,8 +9,6 @@
 THIRD_PARTY_INCLUDES_START
 #include <sstream>
 #include <fstream>
-
-//#include "libdeflate.h"
 THIRD_PARTY_INCLUDES_END
 
 UFF_PugiXmlBPLibrary::UFF_PugiXmlBPLibrary(const FObjectInitializer& ObjectInitializer)
@@ -18,102 +16,6 @@ UFF_PugiXmlBPLibrary::UFF_PugiXmlBPLibrary(const FObjectInitializer& ObjectIniti
 {
 
 }
-
-/*
-void UFF_PugiXmlBPLibrary::LibDeflateTest(FDelegateDeflate DelegateDeflate, TArray<uint8> In_Bytes)
-{
-#ifdef _WIN64
-
-	AsyncTask(ENamedThreads::AnyNormalThreadNormalTask, [DelegateDeflate, In_Bytes]()
-		{
-			libdeflate_decompressor* DeCompressor = libdeflate_alloc_decompressor();
-
-			if (!DeCompressor)
-			{
-				AsyncTask(ENamedThreads::GameThread, [DelegateDeflate]()
-					{
-						FDeflateUncompressed EmptyStruct;
-						DelegateDeflate.ExecuteIfBound(false, EmptyStruct, "Deflate decompressor is not valid.");
-					}
-				);
-
-				return;
-			}
-
-			int32 TargetMb = 1024;
-			size_t UpplerLimit = static_cast<size_t>(TargetMb * 1024 * 1024);
-			size_t ActualSize = 0;
-			libdeflate_result Result = LIBDEFLATE_SUCCESS;
-
-			Result = libdeflate_gzip_decompress(DeCompressor, In_Bytes.GetData(), In_Bytes.Num(), NULL, UpplerLimit, &ActualSize);
-			if (Result != LIBDEFLATE_SUCCESS)
-			{
-				libdeflate_free_decompressor(DeCompressor);
-				DeCompressor = nullptr;
-
-				AsyncTask(ENamedThreads::GameThread, [DelegateDeflate, Result]()
-					{
-						FDeflateUncompressed EmptyStruct;
-						DelegateDeflate.ExecuteIfBound(false, EmptyStruct, "Actual size calculation unsuccessful.");
-						UE_LOG(LogTemp, Warning, TEXT("Libdeflate Error = %d"), (int)Result)
-					}
-				);
-
-				return;
-			}
-
-			uint8* UncompressedBuffer = (uint8*)malloc(ActualSize);
-			libdeflate_gzip_decompress(DeCompressor, In_Bytes.GetData(), In_Bytes.Num(), UncompressedBuffer, ActualSize, NULL);
-			if (Result != LIBDEFLATE_SUCCESS)
-			{
-				libdeflate_free_decompressor(DeCompressor);
-				DeCompressor = nullptr;
-
-				AsyncTask(ENamedThreads::GameThread, [DelegateDeflate]()
-					{
-						FDeflateUncompressed EmptyStruct;
-						DelegateDeflate.ExecuteIfBound(false, EmptyStruct, "Deflate decompression unsuccessful.");
-					}
-				);
-
-				return;
-			}
-
-			FDeflateUncompressed Out_Uncompressed;
-			Out_Uncompressed.UncompressedBuffer.SetNum(ActualSize);
-			FMemory::Memcpy(Out_Uncompressed.UncompressedBuffer.GetData(), UncompressedBuffer, ActualSize);
-
-			libdeflate_free_decompressor(DeCompressor);
-			DeCompressor = nullptr;
-
-			if (!Out_Uncompressed.UncompressedBuffer.GetData())
-			{
-				AsyncTask(ENamedThreads::GameThread, [DelegateDeflate]()
-					{
-						FDeflateUncompressed EmptyStruct;
-						DelegateDeflate.ExecuteIfBound(false, EmptyStruct, "Decompressed buffer is not valid.");
-					}
-				);
-
-				return;
-			}
-
-			AsyncTask(ENamedThreads::GameThread, [DelegateDeflate, Out_Uncompressed]()
-				{
-					DelegateDeflate.ExecuteIfBound(true, Out_Uncompressed, "Deflate decompression successful.");
-				}
-			);
-		}
-	);
-
-#else
-
-	FDeflateUncompressed EmptyStruct;
-	DelegateDeflate.ExecuteIfBound(false, EmptyStruct, "This function is only for Windows");
-
-#endif // _WIN64
-}
-*/
 
 bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Open_File(UFFPugiXml_Doc*& Out_Doc, FString In_Path)
 {
@@ -236,7 +138,9 @@ void UFF_PugiXmlBPLibrary::PugiXml_Doc_Create(UFFPugiXml_Doc*& Out_Doc, FString 
 		Out_Doc->Document.append_child(node_comment).set_value("--DTD--");
 		
 		xml_node Doctype = Out_Doc->Document.append_child(node_doctype);
-		Doctype.set_value(TCHAR_TO_UTF8(*DoctypeName));
+
+		xml_node Doctype_Elems = Doctype.append_child(node_cdata);
+		Doctype_Elems.set_value("Test");
 		
 		// XML delimiter comment.
 		Out_Doc->Document.append_child(node_comment).set_value("--XML--");
@@ -244,11 +148,28 @@ void UFF_PugiXmlBPLibrary::PugiXml_Doc_Create(UFFPugiXml_Doc*& Out_Doc, FString 
 
 	if (!RootName.IsEmpty())
 	{
-		Out_Doc->Root = Out_Doc->Document.append_child(node_element);
-		Out_Doc->Root.set_name(TCHAR_TO_UTF8(*RootName));
-		Out_Doc->Root.append_attribute("xmlns:xsd") = "http://www.w3.org/2001/XMLSchema";
-		Out_Doc->Root.append_attribute("xmlns:xsi") = "http://www.w3.org/2001/XMLSchema-instance";
+		UFFPugiXml_Node* Root = NewObject<UFFPugiXml_Node>();
+		Root->Node = Out_Doc->Document.append_child(node_element);
+		Root->Node.set_name(TCHAR_TO_UTF8(*RootName));
+		Root->Node.append_attribute("xmlns:xsd") = "http://www.w3.org/2001/XMLSchema";
+		Root->Node.append_attribute("xmlns:xsi") = "http://www.w3.org/2001/XMLSchema-instance";
+
+		Out_Doc->Root = Root;
 	}
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Clear(UPARAM(ref)UFFPugiXml_Doc*& In_Doc)
+{
+	if (!IsValid(In_Doc))
+	{
+		return false;
+	}
+
+	In_Doc->Document.reset();
+	In_Doc->Root = nullptr;
+	In_Doc = nullptr;
+
+	return true;
 }
 
 bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString NodeName, FString NodeValue, TMap<FString, FString> Attributes)
@@ -279,7 +200,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, 
 	{
 		if (In_Doc->Root)
 		{
-			Out_Node->Node = In_Doc->Root.append_child(node_element);
+			Out_Node->Node = In_Doc->Root->Node.append_child(node_element);
 		}
 
 		else
@@ -339,7 +260,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Comment(UFFPugiXml_Node*& Out_Node, 
 	{
 		if (In_Doc->Root)
 		{
-			Out_Node->Node = In_Doc->Root.append_child(node_comment);
+			Out_Node->Node = In_Doc->Root->Node.append_child(node_comment);
 		}
 
 		else
@@ -351,7 +272,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Comment(UFFPugiXml_Node*& Out_Node, 
 	return Out_Node->Node.set_value(TCHAR_TO_UTF8(*Comment));
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Pi(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString Comment)
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Pi(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString NodeName, FString NodeValue)
 {
 	if (!IsValid(In_Doc))
 	{
@@ -379,7 +300,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Pi(UFFPugiXml_Node*& Out_Node, UFFPu
 	{
 		if (In_Doc->Root)
 		{
-			Out_Node->Node = In_Doc->Root.append_child(node_pi);
+			Out_Node->Node = In_Doc->Root->Node.append_child(node_pi);
 		}
 
 		else
@@ -388,7 +309,18 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Pi(UFFPugiXml_Node*& Out_Node, UFFPu
 		}
 	}
 
-	return false;
+	bool ResultName = Out_Node->Node.set_name(TCHAR_TO_UTF8(*NodeName));
+	bool ResultValue = Out_Node->Node.set_value(TCHAR_TO_UTF8(*NodeValue));
+
+	if (ResultName && ResultValue)
+	{
+		return true;
+	}
+	
+	else
+	{
+		return false;
+	}
 }
 
 bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_pcdata(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString Value)
@@ -419,7 +351,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_pcdata(UFFPugiXml_Node*& Out_Node, U
 	{
 		if (In_Doc->Root)
 		{
-			Out_Node->Node = In_Doc->Root.append_child(node_pcdata);
+			Out_Node->Node = In_Doc->Root->Node.append_child(node_pcdata);
 		}
 
 		else
@@ -431,7 +363,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_pcdata(UFFPugiXml_Node*& Out_Node, U
 	return Out_Node->Node.set_value(TCHAR_TO_UTF8(*Value));
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_cdata(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString Comment)
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_cdata(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString Value)
 {
 	if (!IsValid(In_Doc))
 	{
@@ -459,7 +391,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_cdata(UFFPugiXml_Node*& Out_Node, UF
 	{
 		if (In_Doc->Root)
 		{
-			Out_Node->Node = In_Doc->Root.append_child(node_cdata);
+			Out_Node->Node = In_Doc->Root->Node.append_child(node_cdata);
 		}
 
 		else
@@ -468,10 +400,10 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_cdata(UFFPugiXml_Node*& Out_Node, UF
 		}
 	}
 
-	return false;
+	return Out_Node->Node.set_value(TCHAR_TO_UTF8(*Value));
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Node_Remove(UObject* Source, UPARAM(ref)UFFPugiXml_Node*& Delete_Target)
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Remove(UPARAM(ref)UObject*& Source, UPARAM(ref)UFFPugiXml_Node*& Delete_Target)
 {
 	if (!IsValid(Source) && !IsValid(Delete_Target))
 	{
@@ -481,7 +413,17 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Remove(UObject* Source, UPARAM(ref)UFFPu
 	UFFPugiXml_Doc* Source_Document = Cast<UFFPugiXml_Doc>(Source);
 	if (IsValid(Source_Document) && Source_Document->Document && Delete_Target->Node)
 	{
-		return Source_Document->Document.remove_child(Delete_Target->Node);
+		bool bAreNodesSame = false;
+		PugiXml_Compare_Nodes(bAreNodesSame, Source_Document->Root, Delete_Target);
+
+		bool ResultRemoveChild = Source_Document->Document.remove_child(Delete_Target->Node);
+
+		if (bAreNodesSame)
+		{
+			Source_Document->Root = nullptr;
+		}
+
+		return ResultRemoveChild;
 	}
 
 	UFFPugiXml_Node* Source_Node = Cast<UFFPugiXml_Node>(Source);
@@ -807,6 +749,30 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Get_Attributes(TMap<FString, FString>& Out_At
 	}
 }
 
+bool UFF_PugiXmlBPLibrary::PugiXml_Check_Empty(bool bIsEmpty, UObject* Target_Object)
+{
+	if (!IsValid(Target_Object))
+	{
+		return false;
+	}
+
+	UFFPugiXml_Doc* Target_Document = Cast<UFFPugiXml_Doc>(Target_Object);
+	if (IsValid(Target_Document) && Target_Document->Document)
+	{
+		bIsEmpty = Target_Document->Document.empty();
+		return true;
+	}
+
+	UFFPugiXml_Node* Target_Node = Cast<UFFPugiXml_Node>(Target_Object);
+	if (IsValid(Target_Node) && Target_Node->Node)
+	{
+		bIsEmpty = Target_Node->Node.empty();
+		return true;
+	}
+
+	return false;
+}
+
 bool UFF_PugiXmlBPLibrary::PugiXml_Compare_Nodes(bool& bAreTheySame, UFFPugiXml_Node* First_Node, UFFPugiXml_Node* Second_Node)
 {
 	if (!IsValid(First_Node) && !IsValid(Second_Node))
@@ -815,6 +781,26 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Compare_Nodes(bool& bAreTheySame, UFFPugiXml_
 	}
 
 	if (First_Node->Node.hash_value() == Second_Node->Node.hash_value())
+	{
+		bAreTheySame = true;
+		return true;
+	}
+
+	else
+	{
+		bAreTheySame = false;
+		return true;
+	}
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Compare_XML(bool& bAreTheySame, UFFPugiXml_Doc* First_Document, UFFPugiXml_Doc* Second_Document)
+{
+	if (!IsValid(First_Document) && !IsValid(Second_Document))
+	{
+		return false;
+	}
+
+	if (First_Document->Document.hash_value() == Second_Document->Document.hash_value())
 	{
 		bAreTheySame = true;
 		return true;
