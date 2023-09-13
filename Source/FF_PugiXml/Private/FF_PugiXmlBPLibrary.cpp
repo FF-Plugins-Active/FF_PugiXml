@@ -7,9 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 
 THIRD_PARTY_INCLUDES_START
-#include <string>
 #include <sstream>
-#include <iostream>
 #include <fstream>
 
 //#include "libdeflate.h"
@@ -253,7 +251,7 @@ void UFF_PugiXmlBPLibrary::PugiXml_Doc_Create(UFFPugiXml_Doc*& Out_Doc, FString 
 	}
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Add_Node_Element(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString NodeName, FString NodeValue, TMap<FString, FString> Attributes)
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString NodeName, FString NodeValue, TMap<FString, FString> Attributes)
 {
 	if (!IsValid(In_Doc))
 	{
@@ -313,6 +311,194 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Add_Node_Element(UFFPugiXml_Node*& Out_Node, 
 	return true;
 }
 
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Comment(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString Comment)
+{
+	if (!IsValid(In_Doc) || Comment.IsEmpty())
+	{
+		return false;
+	}
+
+	Out_Node = NewObject<UFFPugiXml_Node>();
+
+	if (IsValid(Parent_Node))
+	{
+		xml_node_type TargetNodeType = Parent_Node->Node.type();
+
+		if (TargetNodeType == node_document || TargetNodeType == node_element)
+		{
+			Out_Node->Node = Parent_Node->Node.append_child(node_comment);
+		}
+
+		else
+		{
+			return false;
+		}
+	}
+
+	else
+	{
+		if (In_Doc->Root)
+		{
+			Out_Node->Node = In_Doc->Root.append_child(node_comment);
+		}
+
+		else
+		{
+			Out_Node->Node = In_Doc->Document.append_child(node_comment);
+		}
+	}
+
+	return Out_Node->Node.set_value(TCHAR_TO_UTF8(*Comment));
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Pi(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString Comment)
+{
+	if (!IsValid(In_Doc))
+	{
+		return false;
+	}
+
+	Out_Node = NewObject<UFFPugiXml_Node>();
+
+	if (IsValid(Parent_Node))
+	{
+		xml_node_type TargetNodeType = Parent_Node->Node.type();
+
+		if (TargetNodeType == node_document || TargetNodeType == node_element)
+		{
+			Out_Node->Node = Parent_Node->Node.append_child(node_pi);
+		}
+
+		else
+		{
+			return false;
+		}
+	}
+
+	else
+	{
+		if (In_Doc->Root)
+		{
+			Out_Node->Node = In_Doc->Root.append_child(node_pi);
+		}
+
+		else
+		{
+			Out_Node->Node = In_Doc->Document.append_child(node_pi);
+		}
+	}
+
+	return false;
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_pcdata(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString Value)
+{
+	if (!IsValid(In_Doc) || Value.IsEmpty())
+	{
+		return false;
+	}
+
+	Out_Node = NewObject<UFFPugiXml_Node>();
+
+	if (IsValid(Parent_Node))
+	{
+		xml_node_type TargetNodeType = Parent_Node->Node.type();
+
+		if (TargetNodeType == node_document || TargetNodeType == node_element)
+		{
+			Out_Node->Node = Parent_Node->Node.append_child(node_pcdata);
+		}
+
+		else
+		{
+			return false;
+		}
+	}
+
+	else
+	{
+		if (In_Doc->Root)
+		{
+			Out_Node->Node = In_Doc->Root.append_child(node_pcdata);
+		}
+
+		else
+		{
+			Out_Node->Node = In_Doc->Document.append_child(node_pcdata);
+		}
+	}
+
+	return Out_Node->Node.set_value(TCHAR_TO_UTF8(*Value));
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_cdata(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString Comment)
+{
+	if (!IsValid(In_Doc))
+	{
+		return false;
+	}
+
+	Out_Node = NewObject<UFFPugiXml_Node>();
+
+	if (IsValid(Parent_Node))
+	{
+		xml_node_type TargetNodeType = Parent_Node->Node.type();
+
+		if (TargetNodeType == node_document || TargetNodeType == node_element)
+		{
+			Out_Node->Node = Parent_Node->Node.append_child(node_cdata);
+		}
+
+		else
+		{
+			return false;
+		}
+	}
+
+	else
+	{
+		if (In_Doc->Root)
+		{
+			Out_Node->Node = In_Doc->Root.append_child(node_cdata);
+		}
+
+		else
+		{
+			Out_Node->Node = In_Doc->Document.append_child(node_cdata);
+		}
+	}
+
+	return false;
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Remove(UObject* Source, UFFPugiXml_Node* Delete_Target)
+{
+	if (IsValid(Source) && IsValid(Delete_Target))
+	{
+		return false;
+	}
+
+	UFFPugiXml_Doc* Source_Document = Cast<UFFPugiXml_Doc>(Source);
+	if (IsValid(Source_Document) && Source_Document->Document && Delete_Target->Node)
+	{
+		return Source_Document->Document.remove_child(Delete_Target->Node);
+	}
+
+	UFFPugiXml_Node* Source_Node = Cast<UFFPugiXml_Node>(Source);
+	if (IsValid(Source_Node) && Source_Node->Node && Delete_Target->Node)
+	{
+		xml_node_type SourceNodeType = Source_Node->Node.type();
+		if (SourceNodeType == node_document && SourceNodeType == node_element)
+		{
+			return Source_Node->Node.remove_child(Delete_Target->Node);
+		}
+
+		return false;
+	}
+
+	return false;
+}
+
 bool UFF_PugiXmlBPLibrary::PugiXml_Get_Children(TArray<UFFPugiXml_Node*>& Out_Children, UObject* Target_Object)
 {
 	if (!IsValid(Target_Object))
@@ -321,7 +507,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Get_Children(TArray<UFFPugiXml_Node*>& Out_Ch
 	}
 
 	UFFPugiXml_Doc* Target_Document = Cast<UFFPugiXml_Doc>(Target_Object);
-	if (Target_Document && Target_Document->Document)
+	if (IsValid(Target_Document) && Target_Document->Document)
 	{
 		for (xml_node Each_Node : Target_Document->Document.children())
 		{
@@ -338,28 +524,177 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Get_Children(TArray<UFFPugiXml_Node*>& Out_Ch
 	}
 
 	UFFPugiXml_Node* Target_Node = Cast<UFFPugiXml_Node>(Target_Object);
-	if (Target_Node && Target_Node->Node)
+	if (IsValid(Target_Node) && Target_Node->Node)
 	{
-		if (Target_Node->Node.type() == node_document || Target_Node->Node.type() == node_element)
-		{
-			for (xml_node Each_Node : Target_Node->Node.children())
-			{
-				if (Each_Node)
-				{
-					UFFPugiXml_Node* Each_Node_Object = NewObject<UFFPugiXml_Node>();
-					Each_Node_Object->Node = Each_Node;
-
-					Out_Children.Add(Each_Node_Object);
-				}
-			}
-
-			return true;
-		}
-
-		else
+		xml_node_type TargetNodeType = Target_Node->Node.type();
+		if (TargetNodeType != node_document && TargetNodeType != node_element)
 		{
 			return false;
 		}
+
+		for (xml_node Each_Node : Target_Node->Node.children())
+		{
+			if (Each_Node)
+			{
+				UFFPugiXml_Node* Each_Node_Object = NewObject<UFFPugiXml_Node>();
+				Each_Node_Object->Node = Each_Node;
+
+				Out_Children.Add(Each_Node_Object);
+			}
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Get_Border_Children(UFFPugiXml_Node*& Out_Child, UObject* Target_Object, bool bIsLast)
+{
+	if (!IsValid(Target_Object))
+	{
+		return false;
+	}
+
+	UFFPugiXml_Doc* Target_Document = Cast<UFFPugiXml_Doc>(Target_Object);
+	if (IsValid(Target_Document) && Target_Document->Document)
+	{
+		xml_node Child = bIsLast ? Target_Document->Document.last_child() : Target_Document->Document.first_child();
+
+		if (!Child)
+		{
+			return false;
+		}
+
+		Out_Child = NewObject<UFFPugiXml_Node>();
+		Out_Child->Node = Child;
+		return true;
+	}
+
+	UFFPugiXml_Node* Target_Node = Cast<UFFPugiXml_Node>(Target_Object);
+	if (IsValid(Target_Node) && Target_Node->Node)
+	{
+		xml_node_type TargetNodeType = Target_Node->Node.type();
+		if (TargetNodeType != node_document && TargetNodeType != node_element)
+		{
+			return false;
+		}
+
+		xml_node Child = bIsLast ? Target_Node->Node.last_child() : Target_Node->Node.first_child();
+		if (!Child)
+		{
+			return false;
+		}
+
+		Out_Child = NewObject<UFFPugiXml_Node>();
+		Out_Child->Node = Child;
+		return true;
+	}
+
+	return false;
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Get_Siblings(UFFPugiXml_Node*& Out_Sibling, UFFPugiXml_Node* Target_Node, bool bIsPrevious)
+{
+	if (!IsValid(Target_Node))
+	{
+		return false;
+	}
+
+	xml_node Sibling = bIsPrevious ? Target_Node->Node.previous_sibling() : Target_Node->Node.next_sibling();
+	if (!Sibling)
+	{
+		return false;
+	}
+
+	Out_Sibling = NewObject<UFFPugiXml_Node>();
+	Out_Sibling->Node = Sibling;
+	return true;
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Find_Child(UFFPugiXml_Node*& Out_Sibling, UObject* Target_Object, FString Child_Name)
+{
+	if (!IsValid(Target_Object))
+	{
+		return false;
+	}
+
+	UFFPugiXml_Doc* Target_Document = Cast<UFFPugiXml_Doc>(Target_Object);
+	if (IsValid(Target_Document) && Target_Document->Document)
+	{
+		xml_node Found_Node = Target_Document->Document.child(TCHAR_TO_UTF8(*Child_Name));
+		if (!Found_Node)
+		{
+			return false;
+		}
+
+		Out_Sibling = NewObject<UFFPugiXml_Node>();
+		Out_Sibling->Node = Found_Node;
+		return true;
+	}
+
+	UFFPugiXml_Node* Target_Node = Cast<UFFPugiXml_Node>(Target_Object);
+	if (IsValid(Target_Node) && Target_Node->Node)
+	{
+		xml_node_type TargetNodeType = Target_Node->Node.type();
+		if (TargetNodeType != node_document && TargetNodeType != node_element)
+		{
+			return false;
+		}
+
+		xml_node Found_Node = Target_Node->Node.child(TCHAR_TO_UTF8(*Child_Name));
+		if (!Found_Node)
+		{
+			return false;
+		}
+
+		Out_Sibling = NewObject<UFFPugiXml_Node>();
+		Out_Sibling->Node = Found_Node;
+		return true;
+	}
+
+	return false;
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Find_Child_By_Attribute(UFFPugiXml_Node*& Out_Child, UObject* Target_Object, FString Attribute_Name, FString Attribute_Value)
+{
+	if (!IsValid(Target_Object))
+	{
+		return false;
+	}
+
+	UFFPugiXml_Doc* Target_Document = Cast<UFFPugiXml_Doc>(Target_Object);
+	if (IsValid(Target_Document) && Target_Document->Document)
+	{
+		xml_node Found_Node = Target_Document->Document.find_child_by_attribute(TCHAR_TO_UTF8(*Attribute_Name), TCHAR_TO_UTF8(*Attribute_Value));
+		if (!Found_Node)
+		{
+			return false;
+		}
+
+		Out_Child = NewObject<UFFPugiXml_Node>();
+		Out_Child->Node = Found_Node;
+		return true;
+	}
+	
+	UFFPugiXml_Node* Target_Node = Cast<UFFPugiXml_Node>(Target_Object);
+	if (IsValid(Target_Node) && Target_Node->Node)
+	{
+		xml_node_type TargetNodeType = Target_Node->Node.type();
+		if (TargetNodeType != node_document && TargetNodeType != node_element)
+		{
+			return false;
+		}
+
+		xml_node Found_Node = Target_Node->Node.find_child_by_attribute(TCHAR_TO_UTF8(*Attribute_Name), TCHAR_TO_UTF8(*Attribute_Value));
+		if (!Found_Node)
+		{
+			return false;
+		}
+
+		Out_Child = NewObject<UFFPugiXml_Node>();
+		Out_Child->Node = Found_Node;
+		return true;
 	}
 
 	return false;
@@ -377,9 +712,13 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Get_Name(FString& Out_Name, UFFPugiXml_Node* 
 	if (TargetNodeType == node_element || TargetNodeType == node_pi || TargetNodeType == node_declaration)
 	{
 		Out_Name = Target_Node->Node.name();
+		return true;
 	}
 
-	return true;
+	else
+	{
+		return false;
+	}
 }
 
 bool UFF_PugiXmlBPLibrary::PugiXml_Get_Value(FString& Out_Value, UFFPugiXml_Node* Target_Node)
@@ -391,20 +730,10 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Get_Value(FString& Out_Value, UFFPugiXml_Node
 
 	xml_node_type TargetNodeType = Target_Node->Node.type();
 
-	if (TargetNodeType == node_element)
+	if (TargetNodeType == node_element && Target_Node->Node.first_child())
 	{
-		if (!Target_Node->Node.first_child())
-		{
-			return false;
-		}
-
-		TargetNodeType = Target_Node->Node.first_child().type();
-		
-		if (TargetNodeType == node_pcdata || TargetNodeType == node_cdata || TargetNodeType == node_comment || TargetNodeType == node_pi || TargetNodeType == node_doctype)
-		{	
-			Out_Value = Target_Node->Node.first_child().value();
-			return true;
-		}
+		Out_Value = Target_Node->Node.child_value();
+		return true;
 	}
 
 	else if (TargetNodeType == node_pcdata || TargetNodeType == node_cdata || TargetNodeType == node_comment || TargetNodeType == node_pi || TargetNodeType == node_doctype)
