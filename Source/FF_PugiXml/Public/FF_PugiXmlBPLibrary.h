@@ -42,7 +42,7 @@ public:
 
 	xml_document Document;
 	
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadWrite)
 	UFFPugiXml_Node* Root = nullptr;
 };
 
@@ -63,67 +63,73 @@ class UFF_PugiXmlBPLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Print Document", Keywords = "pugixml, xml, document, print"), Category = "FF_PugiXml|Save")
 	static FF_PUGIXML_API bool PugiXml_Doc_Print(UFFPugiXml_Doc* In_Doc, FString& Out_String);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Save Document", Keywords = "pugixml, xml, document, save"), Category = "FF_PugiXml|Save")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Save Document", Tooltip = "", Keywords = "pugixml, xml, document, save"), Category = "FF_PugiXml|Save")
 	static FF_PUGIXML_API bool PugiXml_Doc_Save(UFFPugiXml_Doc* In_Doc, FString In_Path);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Create Document", Keywords = "pugixml, xml, document, create"), Category = "FF_PugiXml|Write")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Create Document", Tooltip = "", Keywords = "pugixml, xml, document, create"), Category = "FF_PugiXml|Write")
 	static FF_PUGIXML_API void PugiXml_Doc_Create(UFFPugiXml_Doc*& Out_Doc, FString RootName, FString DoctypeName, bool bIsStandalone, bool bAddDoctype);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Clear XML", Keywords = "pugixml, xml, document, empty, delete, remove, clear"), Category = "FF_PugiXml|Write")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Clear XML", Tooltip = "", Keywords = "pugixml, xml, document, empty, delete, remove, clear"), Category = "FF_PugiXml|Write")
 	static FF_PUGIXML_API bool PugiXml_Doc_Clear(UPARAM(ref)UFFPugiXml_Doc*& In_Doc);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node Element", Keywords = "pugixml, xml, document, node, add, element"), Category = "FF_PugiXml|Write")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Doctype", Tooltip = "", Keywords = "pugixml, xml, document, node, add, doctype"), Category = "FF_PugiXml|Write")
+	static FF_PUGIXML_API bool PugiXml_Node_Add_Doctype(UFFPugiXml_Doc* In_Doc, FString DoctypeName);
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node Element", Tooltip = "", Keywords = "pugixml, xml, document, node, add, element"), Category = "FF_PugiXml|Write")
 	static FF_PUGIXML_API bool PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString NodeName, FString NodeValue, TMap<FString, FString> Attributes);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node Comment", Keywords = "pugixml, xml, document, node, add, comment"), Category = "FF_PugiXml|Write")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node Comment", Tooltip = "", Keywords = "pugixml, xml, document, node, add, comment"), Category = "FF_PugiXml|Write")
 	static FF_PUGIXML_API bool PugiXml_Node_Add_Comment(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString Comment);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node Processing Instructions", Keywords = "pugixml, xml, document, node, add, pi, processing, instructions"), Category = "FF_PugiXml|Write")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node Processing Instructions", Tooltip = "", Keywords = "pugixml, xml, document, node, add, pi, processing, instructions"), Category = "FF_PugiXml|Write")
 	static FF_PUGIXML_API bool PugiXml_Node_Add_Pi(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString NodeName, FString NodeValue);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node Plain Character", Keywords = "pugixml, xml, document, node, add, pcdata, plain, character"), Category = "FF_PugiXml|Write")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node Plain Character", Tooltip = "", Keywords = "pugixml, xml, document, node, add, pcdata, plain, character"), Category = "FF_PugiXml|Write")
 	static FF_PUGIXML_API bool PugiXml_Node_Add_pcdata(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString Value);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node CDATA", Keywords = "pugixml, xml, document, node, add,  cdata"), Category = "FF_PugiXml|Write")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node CDATA", Tooltip = "", Keywords = "pugixml, xml, document, node, add,  cdata"), Category = "FF_PugiXml|Write")
 	static FF_PUGIXML_API bool PugiXml_Node_Add_cdata(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString Value);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Remove Node", Keywords = "pugixml, xml, document, node, remove"), Category = "FF_PugiXml|Write")
-	static FF_PUGIXML_API bool PugiXml_Node_Remove(UPARAM(ref)UObject*& Source, UPARAM(ref)UFFPugiXml_Node*& Delete_Target);
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Remove Node 1", Tooltip = "It has to be direct child/parent not grand-children.", Keywords = "pugixml, xml, document, node, remove"), Category = "FF_PugiXml|Write")
+	static FF_PUGIXML_API bool PugiXml_Node_Remove_1(UPARAM(ref)UObject*& Source, UPARAM(ref)UFFPugiXml_Node*& Delete_Target);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Get Children", Keywords = "pugixml, xml, document, get, node, read, child, children, all"), Category = "FF_PugiXml|Parse")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Remove Node 2", Tooltip = "It automatically finds parent.", Keywords = "pugixml, xml, document, node, remove"), Category = "FF_PugiXml|Write")
+	static FF_PUGIXML_API bool PugiXml_Node_Remove_2(UPARAM(ref)UFFPugiXml_Node*& Delete_Target);
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Get Children", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, child, children, all"), Category = "FF_PugiXml|Parse")
 	static FF_PUGIXML_API bool PugiXml_Get_Children(TArray<UFFPugiXml_Node*>& Out_Children, UObject* Target_Object);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Get First Child", Keywords = "pugixml, xml, document, get, node, read, child, children, first"), Category = "FF_PugiXml|Parse")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Get First Child", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, child, children, first"), Category = "FF_PugiXml|Parse")
 	static FF_PUGIXML_API bool PugiXml_Get_Border_Children(UFFPugiXml_Node*& Out_Child, UObject* Target_Object, bool bIsLast);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Get First Child", Keywords = "pugixml, xml, document, get, node, read, child, children, first"), Category = "FF_PugiXml|Parse")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Get First Child", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, child, children, first"), Category = "FF_PugiXml|Parse")
 	static FF_PUGIXML_API bool PugiXml_Get_Siblings(UFFPugiXml_Node*& Out_Sibling, UFFPugiXml_Node* Target_Node, bool bIsPrevious);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Find Child", Keywords = "pugixml, xml, document, get, node, read, child, children, find"), Category = "FF_PugiXml|Parse")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Find Child", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, child, children, find"), Category = "FF_PugiXml|Parse")
 	static FF_PUGIXML_API bool PugiXml_Find_Child(UFFPugiXml_Node*& Out_Sibling, UObject* Target_Object, FString Child_Name);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Find Child by Attribute", Keywords = "pugixml, xml, document, get, node, read, child, children, find, attribute"), Category = "FF_PugiXml|Parse")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Find Child by Attribute", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, child, children, find, attribute"), Category = "FF_PugiXml|Parse")
 	static FF_PUGIXML_API bool PugiXml_Find_Child_By_Attribute(UFFPugiXml_Node*& Out_Sibling, UObject* Target_Object, FString Attribute_Name, FString Attribute_Value);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Find Parent", Keywords = "pugixml, xml, document, get, node, read, parent, find"), Category = "FF_PugiXml|Parse")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Find Parent", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, parent, find"), Category = "FF_PugiXml|Parse")
 	static FF_PUGIXML_API bool PugiXml_Find_Parent(UFFPugiXml_Node*& Found_Parent, bool& bIsParentXml, UFFPugiXml_Node* Target_Node);
 
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Get Name", Keywords = "pugixml, xml, document, get, node, read, name"), Category = "FF_PugiXml|Parse")
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Get Name", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, name"), Category = "FF_PugiXml|Parse")
 	static FF_PUGIXML_API bool PugiXml_Get_Name(FString& Out_Name, UFFPugiXml_Node* Target_Node);
 
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Get Value", Keywords = "pugixml, xml, document, get, node, read, value"), Category = "FF_PugiXml|Parse")
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Get Value", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, value"), Category = "FF_PugiXml|Parse")
 	static FF_PUGIXML_API bool PugiXml_Get_Value(FString& Out_Value, UFFPugiXml_Node* Target_Node);
 
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Get Attributes", Keywords = "pugixml, xml, document, get, node, read, attribute, attributes"), Category = "FF_PugiXml|Parse")
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Get Attributes", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, attribute, attributes"), Category = "FF_PugiXml|Parse")
 	static FF_PUGIXML_API bool PugiXml_Get_Attributes(TMap<FString, FString>& Out_Attributes, UFFPugiXml_Node* Target_Node);
 
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Check If Empty", Keywords = "pugixml, xml, document, get, node, read, check, empty"), Category = "FF_PugiXml|Parse")
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Check If Empty", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, check, empty"), Category = "FF_PugiXml|Parse")
 	static FF_PUGIXML_API bool PugiXml_Check_Empty(bool bIsEmpty, UObject* Target_Object);
 
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Compare Nodes", Keywords = "pugixml, xml, document, get, node, compare"), Category = "FF_PugiXml|Parse")
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Compare Nodes", Tooltip = "", Keywords = "pugixml, xml, document, get, node, compare"), Category = "FF_PugiXml|Parse")
 	static FF_PUGIXML_API bool PugiXml_Compare_Nodes(bool& bAreTheySame, UFFPugiXml_Node* First_Node, UFFPugiXml_Node* Second_Node);
 
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Compare Documents", Keywords = "pugixml, xml, document, get compare"), Category = "FF_PugiXml|Parse")
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Compare Documents", Tooltip = "", Keywords = "pugixml, xml, document, get compare"), Category = "FF_PugiXml|Parse")
 	static FF_PUGIXML_API bool PugiXml_Compare_XML(bool& bAreTheySame, UFFPugiXml_Doc* First_Document, UFFPugiXml_Doc* Second_Document);
 
 };

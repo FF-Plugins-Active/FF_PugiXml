@@ -138,10 +138,8 @@ void UFF_PugiXmlBPLibrary::PugiXml_Doc_Create(UFFPugiXml_Doc*& Out_Doc, FString 
 		Out_Doc->Document.append_child(node_comment).set_value("--DTD--");
 		
 		xml_node Doctype = Out_Doc->Document.append_child(node_doctype);
+		Doctype.set_value(TCHAR_TO_UTF8(*DoctypeName));
 
-		xml_node Doctype_Elems = Doctype.append_child(node_cdata);
-		Doctype_Elems.set_value("Test");
-		
 		// XML delimiter comment.
 		Out_Doc->Document.append_child(node_comment).set_value("--XML--");
 	}
@@ -170,6 +168,23 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Clear(UPARAM(ref)UFFPugiXml_Doc*& In_Doc)
 	In_Doc = nullptr;
 
 	return true;
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype(UFFPugiXml_Doc* In_Doc, FString DoctypeName)
+{
+	if (!IsValid(In_Doc) || DoctypeName.IsEmpty())
+	{
+		return false;
+	}
+
+	xml_node Decleration = In_Doc->Document.first_child();
+	if (!Decleration)
+	{
+		return false;
+	}
+
+	xml_node Doctype = In_Doc->Document.insert_child_after(node_doctype, Decleration);
+	return Doctype.set_value(TCHAR_TO_UTF8(*DoctypeName));
 }
 
 bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString NodeName, FString NodeValue, TMap<FString, FString> Attributes)
@@ -403,7 +418,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_cdata(UFFPugiXml_Node*& Out_Node, UF
 	return Out_Node->Node.set_value(TCHAR_TO_UTF8(*Value));
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Node_Remove(UPARAM(ref)UObject*& Source, UPARAM(ref)UFFPugiXml_Node*& Delete_Target)
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Remove_1(UPARAM(ref)UObject * &Source, UPARAM(ref)UFFPugiXml_Node * &Delete_Target)
 {
 	if (!IsValid(Source) && !IsValid(Delete_Target))
 	{
@@ -411,8 +426,14 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Remove(UPARAM(ref)UObject*& Source, UPAR
 	}
 
 	UFFPugiXml_Doc* Source_Document = Cast<UFFPugiXml_Doc>(Source);
-	if (IsValid(Source_Document) && Source_Document->Document && Delete_Target->Node)
+	if (IsValid(Source_Document) && Source_Document->Document)
 	{
+		if (Source_Document->Document != Delete_Target->Node.parent())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Target node's parent is not document !"));
+			return false;
+		}
+
 		bool bAreNodesSame = false;
 		PugiXml_Compare_Nodes(bAreNodesSame, Source_Document->Root, Delete_Target);
 
@@ -439,6 +460,28 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Remove(UPARAM(ref)UObject*& Source, UPAR
 	}
 
 	return false;
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Remove_2(UPARAM(ref)UFFPugiXml_Node*& Delete_Target)
+{
+	if (!IsValid(Delete_Target))
+	{
+		return false;
+	}
+
+	xml_node Parent = Delete_Target->Node.parent();
+	bool RemoveResult = Parent.remove_child(Delete_Target->Node);
+
+	if (RemoveResult)
+	{
+		Delete_Target = nullptr;
+		return true;
+	}
+	
+	else
+	{
+		return false;
+	}
 }
 
 bool UFF_PugiXmlBPLibrary::PugiXml_Get_Children(TArray<UFFPugiXml_Node*>& Out_Children, UObject* Target_Object)
