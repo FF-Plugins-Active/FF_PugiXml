@@ -22,6 +22,36 @@ THIRD_PARTY_INCLUDES_END
 
 using namespace pugi;
 
+USTRUCT()
+struct FF_PUGIXML_API FPugiXmlDoctypeElements
+{
+	GENERATED_BODY()
+
+public:
+
+	FString Element_Name = "";
+
+	TArray<FString> Element_Contents;
+
+};
+
+USTRUCT()
+struct FF_PUGIXML_API FPugiXmlDoctypeAttributes
+{
+	GENERATED_BODY()
+
+public:
+
+	FString Element_Name = "";
+	
+	FString Attribute_Name = "";
+
+	FString Attribute_Value_Default;
+
+	TArray<FString> Attribute_Value_List;
+
+};
+
 UCLASS(BlueprintType)
 class FF_PUGIXML_API UFFPugiXml_Node : public UObject
 {
@@ -45,6 +75,9 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	UFFPugiXml_Node* Root = nullptr;
 
+	TMap<FString, FPugiXmlDoctypeElements> Doctype_Elements;
+
+	TMap<FString, FPugiXmlDoctypeAttributes> Doctype_Attributes;
 };
 
 UCLASS()
@@ -80,8 +113,11 @@ class UFF_PugiXmlBPLibrary : public UBlueprintFunctionLibrary
 	* @param Out_Nodes This array contains three nodes. DTD delimiter, DOCTYPE, XML delimiter.
 	* @param Elements You have to write all node "names" in here. You don't have to write values or informations about only value based nodes.
 	*/
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Doctype", Keywords = "pugixml, xml, document, node, add, doctype"), Category = "FF_PugiXml|Write")
-	static FF_PUGIXML_API bool PugiXml_Node_Add_Doctype(TArray<UFFPugiXml_Node*>& Out_Nodes, UFFPugiXml_Doc* In_Doc, FString DoctypeName, TSet<FString> Elements);
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Custom Doctype", Keywords = "pugixml, xml, document, node, add, doctype, custom"), Category = "FF_PugiXml|Write")
+	static FF_PUGIXML_API bool PugiXml_Node_Add_Doctype_Custom(TArray<UFFPugiXml_Node*>& Out_Nodes, UFFPugiXml_Doc* In_Doc, FString DoctypeName, TMap<FString, FString> In_Elements);
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Custom Auto", Keywords = "pugixml, xml, document, node, add, doctype, auto"), Category = "FF_PugiXml|Write")
+	static FF_PUGIXML_API bool PugiXml_Node_Add_Doctype_Auto(TArray<UFFPugiXml_Node*>& Out_Nodes, UFFPugiXml_Doc* In_Doc, FString DoctypeName);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node Element", Tooltip = "", Keywords = "pugixml, xml, document, node, add, element"), Category = "FF_PugiXml|Write")
 	static FF_PUGIXML_API bool PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString NodeName, FString NodeValue, TMap<FString, FString> Attributes);

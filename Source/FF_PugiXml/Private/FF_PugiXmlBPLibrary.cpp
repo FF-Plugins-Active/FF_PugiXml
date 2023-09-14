@@ -5,6 +5,7 @@
 
 // UE Includes.
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetStringLibrary.h"
 
 THIRD_PARTY_INCLUDES_START
 #include <sstream>
@@ -158,7 +159,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Clear(UPARAM(ref)UFFPugiXml_Doc*& In_Doc)
 	return true;
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype(TArray<UFFPugiXml_Node*>& Out_Nodes, UFFPugiXml_Doc* In_Doc, FString DoctypeName, TSet<FString> Elements)
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype_Custom(TArray<UFFPugiXml_Node*>& Out_Nodes, UFFPugiXml_Doc* In_Doc, FString DoctypeName, TMap<FString, FString> In_Elements)
 {
 	if (!IsValid(In_Doc) || DoctypeName.IsEmpty())
 	{
@@ -185,7 +186,114 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype(TArray<UFFPugiXml_Node*>& Ou
 	// Doctype Node.
 	UFFPugiXml_Node* Node_Doctype = NewObject<UFFPugiXml_Node>();
 	Node_Doctype->Node = In_Doc->Document.insert_child_after(node_doctype, Node_Delimiter_DTD->Node);
-	bool Result_Doctype = Node_Doctype->Node.set_value(TCHAR_TO_UTF8(*DoctypeName));
+	
+	FString DTD_Value = "";
+	DTD_Value += DoctypeName + "\n";
+	DTD_Value += "[\n";
+
+	TArray<FString> Array_Elements;
+	In_Elements.GenerateKeyArray(Array_Elements);
+
+	for (int32 Index_Elements = 0; Index_Elements < Array_Elements.Num(); Index_Elements++)
+	{
+		DTD_Value += "<!ELEMENT " + Array_Elements[Index_Elements] + " (" + *In_Elements.Find(Array_Elements[Index_Elements]) + ")>\n";
+	}
+
+	DTD_Value += "]";
+
+	bool Result_Doctype = Node_Doctype->Node.set_value(TCHAR_TO_UTF8(*DTD_Value));
+
+	// XML delimiter comment.
+	UFFPugiXml_Node* Node_Delimiter_XML = NewObject<UFFPugiXml_Node>();
+	Node_Delimiter_XML->Node = In_Doc->Document.insert_child_after(node_comment, Node_Doctype->Node);
+	bool Result_Delimiter_XML = Node_Delimiter_XML->Node.set_value("XML");
+
+	if (Result_Delimiter_DTD && Result_Doctype && Result_Delimiter_XML)
+	{
+		Out_Nodes.Add(Node_Delimiter_DTD);
+		Out_Nodes.Add(Node_Doctype);
+		Out_Nodes.Add(Node_Delimiter_XML);
+
+		return true;
+	}
+
+	else
+	{
+		return false;
+	}
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype_Auto(TArray<UFFPugiXml_Node*>& Out_Nodes, UFFPugiXml_Doc* In_Doc, FString DoctypeName)
+{
+	if (!IsValid(In_Doc) || DoctypeName.IsEmpty())
+	{
+		return false;
+	}
+
+	xml_node Decleration = In_Doc->Document.first_child();
+	if (!Decleration)
+	{
+		return false;
+	}
+
+	// First sibling is DTD delimiter and second sibling is actual DOCTYPE. We need to be sure that there is no other Doctype. 
+	if (Decleration.next_sibling().next_sibling().type() == node_doctype)
+	{
+		return false;
+	}
+
+	// DTD delimiter comment.
+	UFFPugiXml_Node* Node_Delimiter_DTD = NewObject<UFFPugiXml_Node>();
+	Node_Delimiter_DTD->Node = In_Doc->Document.insert_child_after(node_comment, Decleration);
+	bool Result_Delimiter_DTD = Node_Delimiter_DTD->Node.set_value("DTD");
+
+	// DOCTYPE node.
+	UFFPugiXml_Node* Node_Doctype = NewObject<UFFPugiXml_Node>();
+	Node_Doctype->Node = In_Doc->Document.insert_child_after(node_doctype, Node_Delimiter_DTD->Node);
+
+	/*
+	* DOCTYPE CONTENTS -> ELEMENTS
+	*/
+
+	TArray<FPugiXmlDoctypeElements> Array_Elements_Struct;
+	In_Doc->Doctype_Elements.GenerateValueArray(Array_Elements_Struct);
+
+	TArray<FString> Array_Elements_String;
+	for (int32 Index_Elements = 0; Index_Elements < Array_Elements_Struct.Num(); Index_Elements++)
+	{
+		FString EachElement = "<!ELEMENT " + Array_Elements_Struct[Index_Elements].Element_Name + " (" + UKismetStringLibrary::JoinStringArray(Array_Elements_Struct[Index_Elements].Element_Contents, ",") + ")>";
+		Array_Elements_String.Add(EachElement);
+	}
+
+	FString Elements_String = UKismetStringLibrary::JoinStringArray(Array_Elements_String, "\n");
+
+	/*
+	* DOCTYPE CONTENTS -> ATTRIBUTES
+	*/
+
+	TArray<FPugiXmlDoctypeAttributes> Array_Attributes_Struct;
+	In_Doc->Doctype_Attributes.GenerateValueArray(Array_Attributes_Struct);
+
+	TArray<FString> Array_Attributes_String;
+	for (int32 Index_Attributes = 0; Index_Attributes < Array_Attributes_Struct.Num(); Index_Attributes++)
+	{
+		FString EachAttribute = "<!ATTLIST " + Array_Attributes_Struct[Index_Attributes].Element_Name + " " + Array_Attributes_Struct[Index_Attributes].Attribute_Name + " (" + UKismetStringLibrary::JoinStringArray(Array_Attributes_Struct[Index_Attributes].Attribute_Value_List, "|") + ") \"" + Array_Attributes_Struct[Index_Attributes].Attribute_Value_Default + "\">";
+		Array_Attributes_String.Add(EachAttribute);
+	}
+
+	FString Attributes_String = UKismetStringLibrary::JoinStringArray(Array_Attributes_String, "\n");
+
+	/*
+	* DOCTYPE CONTENTS -> VALUE DATA
+	*/
+
+	FString DTD_Value = "";
+	DTD_Value += DoctypeName + "\n";
+	DTD_Value += "[\n";
+	DTD_Value += Elements_String + "\n";
+	DTD_Value += Attributes_String + "\n";
+	DTD_Value += "]>";
+	bool Result_Doctype = Node_Doctype->Node.set_value(TCHAR_TO_UTF8(*DTD_Value));
 
 	// XML delimiter comment.
 	UFFPugiXml_Node* Node_Delimiter_XML = NewObject<UFFPugiXml_Node>();
