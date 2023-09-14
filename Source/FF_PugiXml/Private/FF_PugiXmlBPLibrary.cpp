@@ -18,6 +18,32 @@ UFF_PugiXmlBPLibrary::UFF_PugiXmlBPLibrary(const FObjectInitializer& ObjectIniti
 
 }
 
+void Callback_Children(xml_node Target_Node, UPARAM(ref)TArray<UFFPugiXml_Node*>& Pool_Children)
+{
+	if (!Target_Node)
+	{
+		return;
+	}
+
+	for (xml_node Each_Node : Target_Node.children())
+	{
+		if (!Each_Node)
+		{
+			continue;
+		}
+
+		UFFPugiXml_Node* EachNodeObject = NewObject<UFFPugiXml_Node>();
+		EachNodeObject->Node = Each_Node;
+
+		Pool_Children.Add(EachNodeObject);
+
+		if (Each_Node.first_child())
+		{
+			Callback_Children(Each_Node, Pool_Children);
+		}
+	}
+}
+
 bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Open_File(UFFPugiXml_Doc*& Out_Doc, FString In_Path)
 {
 	if (In_Path.IsEmpty())
@@ -87,7 +113,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Open_String(UFFPugiXml_Doc*& Out_Doc, FSt
 	}
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Print(UFFPugiXml_Doc* In_Doc, FString& Out_String)
+bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Print(FString& Out_String, UFFPugiXml_Doc* In_Doc)
 {
 	if (!IsValid(In_Doc))
 	{
@@ -102,7 +128,23 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Print(UFFPugiXml_Doc* In_Doc, FString& Ou
 	return true;
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Save(UFFPugiXml_Doc* In_Doc, FString In_Path)
+bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Save_Memory(TArray<uint8>& Out_Bytes, UFFPugiXml_Doc* In_Doc)
+{
+	if (!IsValid(In_Doc))
+	{
+		return false;
+	}
+
+	std::stringstream StringStream;
+	In_Doc->Document.print(StringStream, "  ");
+
+	FTCHARToUTF8 Source = FTCHARToUTF8((FString)StringStream.str().c_str());
+	Out_Bytes.Append((uint8*)Source.Get(), Source.Length());
+
+	return true;
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Save_File(UFFPugiXml_Doc* In_Doc, FString In_Path)
 {
 	if (!IsValid(In_Doc))
 	{
@@ -141,7 +183,7 @@ void UFF_PugiXmlBPLibrary::PugiXml_Doc_Create(UFFPugiXml_Doc*& Out_Doc, FString 
 		Root->Node.append_attribute("xmlns:xsd") = "http://www.w3.org/2001/XMLSchema";
 		Root->Node.append_attribute("xmlns:xsi") = "http://www.w3.org/2001/XMLSchema-instance";
 
-		Out_Doc->Root = Root;
+		Out_Doc->SchemeElement = Root;
 	}
 }
 
@@ -153,15 +195,15 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Clear(UPARAM(ref)UFFPugiXml_Doc*& In_Doc)
 	}
 
 	In_Doc->Document.reset();
-	In_Doc->Root = nullptr;
+	In_Doc->SchemeElement = nullptr;
 	In_Doc = nullptr;
 
 	return true;
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype_Custom(TArray<UFFPugiXml_Node*>& Out_Nodes, UFFPugiXml_Doc* In_Doc, FString DoctypeName, TMap<FString, FString> In_Elements)
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype_Custom(TArray<UFFPugiXml_Node*>& Out_Nodes, UFFPugiXml_Doc* In_Doc, FString DoctypeName, FString CustomDefinition)
 {
-	if (!IsValid(In_Doc) || DoctypeName.IsEmpty())
+	if (!IsValid(In_Doc) || DoctypeName.IsEmpty() || CustomDefinition.IsEmpty())
 	{
 		return false;
 	}
@@ -172,35 +214,30 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype_Custom(TArray<UFFPugiXml_Nod
 		return false;
 	}
 
-	// First sibling is DTD delimiter and second sibling is actual DOCTYPE. We need to be sure that there is no other Doctype. 
-	if (Decleration.next_sibling().next_sibling().type() == node_doctype)
+	// If there is a DOCTYPE in XML, return false.
+	for (xml_node Each_Node : In_Doc->Document.children())
 	{
-		return false;
+		if (Each_Node.type() == node_doctype)
+		{
+			return false;
+		}
 	}
 
 	// DTD delimiter comment.
 	UFFPugiXml_Node* Node_Delimiter_DTD = NewObject<UFFPugiXml_Node>();
 	Node_Delimiter_DTD->Node = In_Doc->Document.insert_child_after(node_comment, Decleration);
 	bool Result_Delimiter_DTD = Node_Delimiter_DTD->Node.set_value("DTD");
+	
+	// DOCTYPE definition.
+	FString DTD_Value = "";
+	DTD_Value += DoctypeName + "\n";
+	DTD_Value += "[\n";
+	DTD_Value += CustomDefinition + "\n";
+	DTD_Value += "]";
 
 	// Doctype Node.
 	UFFPugiXml_Node* Node_Doctype = NewObject<UFFPugiXml_Node>();
 	Node_Doctype->Node = In_Doc->Document.insert_child_after(node_doctype, Node_Delimiter_DTD->Node);
-	
-	FString DTD_Value = "";
-	DTD_Value += DoctypeName + "\n";
-	DTD_Value += "[\n";
-
-	TArray<FString> Array_Elements;
-	In_Elements.GenerateKeyArray(Array_Elements);
-
-	for (int32 Index_Elements = 0; Index_Elements < Array_Elements.Num(); Index_Elements++)
-	{
-		DTD_Value += "<!ELEMENT " + Array_Elements[Index_Elements] + " (" + *In_Elements.Find(Array_Elements[Index_Elements]) + ")>\n";
-	}
-
-	DTD_Value += "]";
-
 	bool Result_Doctype = Node_Doctype->Node.set_value(TCHAR_TO_UTF8(*DTD_Value));
 
 	// XML delimiter comment.
@@ -223,7 +260,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype_Custom(TArray<UFFPugiXml_Nod
 	}
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype_Auto(TArray<UFFPugiXml_Node*>& Out_Nodes, UFFPugiXml_Doc* In_Doc, FString DoctypeName)
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype_Auto(TArray<UFFPugiXml_Node*>& Out_Nodes, UFFPugiXml_Doc* In_Doc, FString DoctypeName, bool bAddAttributes)
 {
 	if (!IsValid(In_Doc) || DoctypeName.IsEmpty())
 	{
@@ -236,10 +273,13 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype_Auto(TArray<UFFPugiXml_Node*
 		return false;
 	}
 
-	// First sibling is DTD delimiter and second sibling is actual DOCTYPE. We need to be sure that there is no other Doctype. 
-	if (Decleration.next_sibling().next_sibling().type() == node_doctype)
+	// If there is a DOCTYPE in XML, return false.
+	for (xml_node Each_Node : In_Doc->Document.children())
 	{
-		return false;
+		if (Each_Node.type() == node_doctype)
+		{
+			return false;
+		}
 	}
 
 	// DTD delimiter comment.
@@ -247,41 +287,109 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype_Auto(TArray<UFFPugiXml_Node*
 	Node_Delimiter_DTD->Node = In_Doc->Document.insert_child_after(node_comment, Decleration);
 	bool Result_Delimiter_DTD = Node_Delimiter_DTD->Node.set_value("DTD");
 
-	// DOCTYPE node.
-	UFFPugiXml_Node* Node_Doctype = NewObject<UFFPugiXml_Node>();
-	Node_Doctype->Node = In_Doc->Document.insert_child_after(node_doctype, Node_Delimiter_DTD->Node);
+	TArray<UFFPugiXml_Node*> Pool;
+	Callback_Children(In_Doc->Document.root(), Pool);
 
-	/*
-	* DOCTYPE CONTENTS -> ELEMENTS
-	*/
+	TMap<FString, FString> MAP_Elements;
+	TMap<FString, FString> MAP_Attribute_Options;
+	TArray<FPugiXmlDoctypeAttributes> Array_Attributes;
 
-	TArray<FPugiXmlDoctypeElements> Array_Elements_Struct;
-	In_Doc->Doctype_Elements.GenerateValueArray(Array_Elements_Struct);
-
-	TArray<FString> Array_Elements_String;
-	for (int32 Index_Elements = 0; Index_Elements < Array_Elements_Struct.Num(); Index_Elements++)
+	for (int32 Index_Elements = 0; Index_Elements < Pool.Num(); Index_Elements++)
 	{
-		FString EachElement = "<!ELEMENT " + Array_Elements_Struct[Index_Elements].Element_Name + " (" + UKismetStringLibrary::JoinStringArray(Array_Elements_Struct[Index_Elements].Element_Contents, ",") + ")>";
-		Array_Elements_String.Add(EachElement);
+		xml_node EachNode = Pool[Index_Elements]->Node;
+		xml_node Parent = EachNode.parent();
+		
+		if (Parent && Parent.type() == node_element)
+		{
+			FString EachNodeName = "";
+			FString ParentName = Parent.name();
+
+			if (EachNode.type() == node_element || EachNode.type() == node_pi)
+			{
+				EachNodeName = EachNode.name();
+			}
+
+			else if (EachNode.type() == node_pcdata)
+			{
+				EachNodeName = "#PCDATA";
+			}
+
+			else if (EachNode.type() == node_cdata)
+			{
+				EachNodeName = "#CDATA";
+			}
+			
+			if (MAP_Elements.Contains(ParentName))
+			{
+				FString CurrentContents = *MAP_Elements.Find(ParentName);
+				
+				if (EachNode.first_child() && EachNode.first_child().type() == node_element)
+				{
+					CurrentContents += "," + EachNodeName + "+";
+				}
+
+				else
+				{
+					CurrentContents += "," + EachNodeName;
+				}
+
+				MAP_Elements.Add(ParentName, CurrentContents);
+			}
+
+			else
+			{
+				MAP_Elements.Add(ParentName, EachNodeName);
+			}
+		}
+
+		if (EachNode.type() == node_element && bAddAttributes)
+		{
+			for (xml_attribute Each_Attribute : EachNode.attributes())
+			{
+				if ((FString)Each_Attribute.name() != "xmlns:xsd" && (FString)Each_Attribute.name() != "xmlns:xsi")
+				{
+					FPugiXmlDoctypeAttributes EachAttribute;
+					EachAttribute.Element_Name = EachNode.name();
+					EachAttribute.Attribute_Name = Each_Attribute.name();
+					Array_Attributes.Add(EachAttribute);
+
+					if (MAP_Attribute_Options.Contains(Each_Attribute.name()))
+					{
+						FString CurrentContents = *MAP_Attribute_Options.Find(Each_Attribute.name());
+						CurrentContents += "|" + (FString)Each_Attribute.value();
+						MAP_Attribute_Options.Add(Each_Attribute.name(), CurrentContents);
+					}
+
+					else
+					{
+						MAP_Attribute_Options.Add(Each_Attribute.name(), Each_Attribute.value());
+					}
+				}
+			}
+		}
 	}
 
-	FString Elements_String = UKismetStringLibrary::JoinStringArray(Array_Elements_String, "\n");
-
-	/*
-	* DOCTYPE CONTENTS -> ATTRIBUTES
-	*/
-
-	TArray<FPugiXmlDoctypeAttributes> Array_Attributes_Struct;
-	In_Doc->Doctype_Attributes.GenerateValueArray(Array_Attributes_Struct);
-
-	TArray<FString> Array_Attributes_String;
-	for (int32 Index_Attributes = 0; Index_Attributes < Array_Attributes_Struct.Num(); Index_Attributes++)
+	FString String_Elements;
+	TArray<FString> Keys_Elements;
+	MAP_Elements.GenerateKeyArray(Keys_Elements);
+	for (int32 Index_Elements = 0; Index_Elements < Keys_Elements.Num(); Index_Elements++)
 	{
-		FString EachAttribute = "<!ATTLIST " + Array_Attributes_Struct[Index_Attributes].Element_Name + " " + Array_Attributes_Struct[Index_Attributes].Attribute_Name + " (" + UKismetStringLibrary::JoinStringArray(Array_Attributes_Struct[Index_Attributes].Attribute_Value_List, "|") + ") \"" + Array_Attributes_Struct[Index_Attributes].Attribute_Value_Default + "\">";
-		Array_Attributes_String.Add(EachAttribute);
+		FString EachElement = "<!ELEMENT " + Keys_Elements[Index_Elements] + " (" + *MAP_Elements.Find(Keys_Elements[Index_Elements]) + ")>\n";
+		String_Elements += EachElement;
 	}
 
-	FString Attributes_String = UKismetStringLibrary::JoinStringArray(Array_Attributes_String, "\n");
+	FString String_Attributes;
+	for (int32 Index_Attributes = 0; Index_Attributes < Array_Attributes.Num(); Index_Attributes++)
+	{
+		FPugiXmlDoctypeAttributes EachAttribute = Array_Attributes[Index_Attributes];
+		
+		FString AttributeOptions = *MAP_Attribute_Options.Find(EachAttribute.Attribute_Name);
+
+		TArray<FString> Temp_Options = UKismetStringLibrary::ParseIntoArray(AttributeOptions, "|");
+		FString EachAttributeString = "<!ATTLIST " + EachAttribute.Element_Name + " " + EachAttribute.Attribute_Name + " (" + AttributeOptions + ") \"" + Temp_Options[0] + "\">\n";
+		
+		String_Attributes += EachAttributeString;
+	}
 
 	/*
 	* DOCTYPE CONTENTS -> VALUE DATA
@@ -290,9 +398,13 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype_Auto(TArray<UFFPugiXml_Node*
 	FString DTD_Value = "";
 	DTD_Value += DoctypeName + "\n";
 	DTD_Value += "[\n";
-	DTD_Value += Elements_String + "\n";
-	DTD_Value += Attributes_String + "\n";
-	DTD_Value += "]>";
+	DTD_Value += String_Elements;		// It already has line breaking at the end.
+	DTD_Value += String_Attributes;		// It already has line breaking at the end.
+	DTD_Value += "]";
+
+	// DOCTYPE node.
+	UFFPugiXml_Node* Node_Doctype = NewObject<UFFPugiXml_Node>();
+	Node_Doctype->Node = In_Doc->Document.insert_child_after(node_doctype, Node_Delimiter_DTD->Node);
 	bool Result_Doctype = Node_Doctype->Node.set_value(TCHAR_TO_UTF8(*DTD_Value));
 
 	// XML delimiter comment.
@@ -341,9 +453,9 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, 
 
 	else
 	{
-		if (In_Doc->Root)
+		if (In_Doc->SchemeElement)
 		{
-			Out_Node->Node = In_Doc->Root->Node.append_child(node_element);
+			Out_Node->Node = In_Doc->SchemeElement->Node.append_child(node_element);
 		}
 
 		else
@@ -401,9 +513,9 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Comment(UFFPugiXml_Node*& Out_Node, 
 
 	else
 	{
-		if (In_Doc->Root)
+		if (In_Doc->SchemeElement)
 		{
-			Out_Node->Node = In_Doc->Root->Node.append_child(node_comment);
+			Out_Node->Node = In_Doc->SchemeElement->Node.append_child(node_comment);
 		}
 
 		else
@@ -441,9 +553,9 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Pi(UFFPugiXml_Node*& Out_Node, UFFPu
 
 	else
 	{
-		if (In_Doc->Root)
+		if (In_Doc->SchemeElement)
 		{
-			Out_Node->Node = In_Doc->Root->Node.append_child(node_pi);
+			Out_Node->Node = In_Doc->SchemeElement->Node.append_child(node_pi);
 		}
 
 		else
@@ -492,9 +604,9 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_pcdata(UFFPugiXml_Node*& Out_Node, U
 
 	else
 	{
-		if (In_Doc->Root)
+		if (In_Doc->SchemeElement)
 		{
-			Out_Node->Node = In_Doc->Root->Node.append_child(node_pcdata);
+			Out_Node->Node = In_Doc->SchemeElement->Node.append_child(node_pcdata);
 		}
 
 		else
@@ -532,9 +644,9 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_cdata(UFFPugiXml_Node*& Out_Node, UF
 
 	else
 	{
-		if (In_Doc->Root)
+		if (In_Doc->SchemeElement)
 		{
-			Out_Node->Node = In_Doc->Root->Node.append_child(node_cdata);
+			Out_Node->Node = In_Doc->SchemeElement->Node.append_child(node_cdata);
 		}
 
 		else
@@ -563,13 +675,13 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Remove_1(UPARAM(ref)UObject * &Source, U
 		}
 
 		bool bAreNodesSame = false;
-		PugiXml_Compare_Nodes(bAreNodesSame, Source_Document->Root, Delete_Target);
+		PugiXml_Compare_Nodes(bAreNodesSame, Source_Document->SchemeElement, Delete_Target);
 
 		bool ResultRemoveChild = Source_Document->Document.remove_child(Delete_Target->Node);
 
 		if (bAreNodesSame)
 		{
-			Source_Document->Root = nullptr;
+			Source_Document->SchemeElement = nullptr;
 		}
 
 		return ResultRemoveChild;
@@ -660,6 +772,28 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Get_Children(TArray<UFFPugiXml_Node*>& Out_Ch
 	}
 
 	return false;
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Get_Children_Recursive(TArray<UFFPugiXml_Node*>& Out_Children, UObject* Target_Object)
+{
+	if (!IsValid(Target_Object))
+	{
+		return false;
+	}
+
+	UFFPugiXml_Doc* Target_Document = Cast<UFFPugiXml_Doc>(Target_Object);
+	if (IsValid(Target_Document) && Target_Document->Document)
+	{
+		Callback_Children(Target_Document->Document.root(), Out_Children);
+	}
+
+	UFFPugiXml_Node* Target_Node = Cast<UFFPugiXml_Node>(Target_Object);
+	if (IsValid(Target_Node) && Target_Node->Node)
+	{
+		Callback_Children(Target_Node->Node, Out_Children);
+	}
+
+	return true;
 }
 
 bool UFF_PugiXmlBPLibrary::PugiXml_Get_Border_Children(UFFPugiXml_Node*& Out_Child, UObject* Target_Object, bool bIsLast)
