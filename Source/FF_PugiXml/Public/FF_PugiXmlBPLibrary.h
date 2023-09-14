@@ -44,6 +44,7 @@ public:
 	
 	UPROPERTY(BlueprintReadWrite)
 	UFFPugiXml_Node* Root = nullptr;
+
 };
 
 UCLASS()
@@ -67,13 +68,20 @@ class UFF_PugiXmlBPLibrary : public UBlueprintFunctionLibrary
 	static FF_PUGIXML_API bool PugiXml_Doc_Save(UFFPugiXml_Doc* In_Doc, FString In_Path);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Create Document", Tooltip = "", Keywords = "pugixml, xml, document, create"), Category = "FF_PugiXml|Write")
-	static FF_PUGIXML_API void PugiXml_Doc_Create(UFFPugiXml_Doc*& Out_Doc, FString RootName, FString DoctypeName, bool bIsStandalone, bool bAddDoctype);
+	static FF_PUGIXML_API void PugiXml_Doc_Create(UFFPugiXml_Doc*& Out_Doc, FString RootName, bool bIsStandalone);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Clear XML", Tooltip = "", Keywords = "pugixml, xml, document, empty, delete, remove, clear"), Category = "FF_PugiXml|Write")
 	static FF_PUGIXML_API bool PugiXml_Doc_Clear(UPARAM(ref)UFFPugiXml_Doc*& In_Doc);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Doctype", Tooltip = "", Keywords = "pugixml, xml, document, node, add, doctype"), Category = "FF_PugiXml|Write")
-	static FF_PUGIXML_API bool PugiXml_Node_Add_Doctype(UFFPugiXml_Doc* In_Doc, FString DoctypeName);
+	/**
+	* ADVANCED !
+	* DOCTYPE has to be only one in an XML and it's parent has to be directly document's itself.
+	* Function automatically check if there is a DOCTYPE as third child in XML's root. (1st. Declaration, 2nd. DTD delimiter comment, 3rd. DOCTYPE, 4. XML delimiter comment)
+	* @param Out_Nodes This array contains three nodes. DTD delimiter, DOCTYPE, XML delimiter.
+	* @param Elements You have to write all node "names" in here. You don't have to write values or informations about only value based nodes.
+	*/
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Doctype", Keywords = "pugixml, xml, document, node, add, doctype"), Category = "FF_PugiXml|Write")
+	static FF_PUGIXML_API bool PugiXml_Node_Add_Doctype(TArray<UFFPugiXml_Node*>& Out_Nodes, UFFPugiXml_Doc* In_Doc, FString DoctypeName, TSet<FString> Elements);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node Element", Tooltip = "", Keywords = "pugixml, xml, document, node, add, element"), Category = "FF_PugiXml|Write")
 	static FF_PUGIXML_API bool PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString NodeName, FString NodeValue, TMap<FString, FString> Attributes);

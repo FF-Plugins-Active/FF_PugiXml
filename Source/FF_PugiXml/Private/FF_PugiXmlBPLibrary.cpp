@@ -123,7 +123,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Save(UFFPugiXml_Doc* In_Doc, FString In_P
 	return true;
 }
 
-void UFF_PugiXmlBPLibrary::PugiXml_Doc_Create(UFFPugiXml_Doc*& Out_Doc, FString RootName, FString DoctypeName, bool bIsStandalone, bool bAddDoctype)
+void UFF_PugiXmlBPLibrary::PugiXml_Doc_Create(UFFPugiXml_Doc*& Out_Doc, FString RootName, bool bIsStandalone)
 {
 	Out_Doc = NewObject<UFFPugiXml_Doc>();
 
@@ -131,18 +131,6 @@ void UFF_PugiXmlBPLibrary::PugiXml_Doc_Create(UFFPugiXml_Doc*& Out_Doc, FString 
 	Declaration.append_attribute("version") = "1.0";
 	Declaration.append_attribute("encoding") = "utf-8";
 	Declaration.append_attribute("standalone") = bIsStandalone ? "yes" : "no";
-
-	if (bAddDoctype && !DoctypeName.IsEmpty())
-	{
-		// DTD delimiter comment.
-		Out_Doc->Document.append_child(node_comment).set_value("--DTD--");
-		
-		xml_node Doctype = Out_Doc->Document.append_child(node_doctype);
-		Doctype.set_value(TCHAR_TO_UTF8(*DoctypeName));
-
-		// XML delimiter comment.
-		Out_Doc->Document.append_child(node_comment).set_value("--XML--");
-	}
 
 	if (!RootName.IsEmpty())
 	{
@@ -170,7 +158,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Doc_Clear(UPARAM(ref)UFFPugiXml_Doc*& In_Doc)
 	return true;
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype(UFFPugiXml_Doc* In_Doc, FString DoctypeName)
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype(TArray<UFFPugiXml_Node*>& Out_Nodes, UFFPugiXml_Doc* In_Doc, FString DoctypeName, TSet<FString> Elements)
 {
 	if (!IsValid(In_Doc) || DoctypeName.IsEmpty())
 	{
@@ -183,8 +171,40 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype(UFFPugiXml_Doc* In_Doc, FStr
 		return false;
 	}
 
-	xml_node Doctype = In_Doc->Document.insert_child_after(node_doctype, Decleration);
-	return Doctype.set_value(TCHAR_TO_UTF8(*DoctypeName));
+	// First sibling is DTD delimiter and second sibling is actual DOCTYPE. We need to be sure that there is no other Doctype. 
+	if (Decleration.next_sibling().next_sibling().type() == node_doctype)
+	{
+		return false;
+	}
+
+	// DTD delimiter comment.
+	UFFPugiXml_Node* Node_Delimiter_DTD = NewObject<UFFPugiXml_Node>();
+	Node_Delimiter_DTD->Node = In_Doc->Document.insert_child_after(node_comment, Decleration);
+	bool Result_Delimiter_DTD = Node_Delimiter_DTD->Node.set_value("DTD");
+
+	// Doctype Node.
+	UFFPugiXml_Node* Node_Doctype = NewObject<UFFPugiXml_Node>();
+	Node_Doctype->Node = In_Doc->Document.insert_child_after(node_doctype, Node_Delimiter_DTD->Node);
+	bool Result_Doctype = Node_Doctype->Node.set_value(TCHAR_TO_UTF8(*DoctypeName));
+
+	// XML delimiter comment.
+	UFFPugiXml_Node* Node_Delimiter_XML = NewObject<UFFPugiXml_Node>();
+	Node_Delimiter_XML->Node = In_Doc->Document.insert_child_after(node_comment, Node_Doctype->Node);
+	bool Result_Delimiter_XML = Node_Delimiter_XML->Node.set_value("XML");
+
+	if (Result_Delimiter_DTD && Result_Doctype && Result_Delimiter_XML)
+	{
+		Out_Nodes.Add(Node_Delimiter_DTD);
+		Out_Nodes.Add(Node_Doctype);
+		Out_Nodes.Add(Node_Delimiter_XML);
+
+		return true;
+	}
+
+	else
+	{
+		return false;
+	}
 }
 
 bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString NodeName, FString NodeValue, TMap<FString, FString> Attributes)
