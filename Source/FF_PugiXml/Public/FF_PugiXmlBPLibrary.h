@@ -1,6 +1,6 @@
 /*
 *	
-*	PugiXml Binaries.
+*	PugiXml Library.
 *	https://github.com/zeux/pugixml
 *
 *	PugiXml Documentations.
