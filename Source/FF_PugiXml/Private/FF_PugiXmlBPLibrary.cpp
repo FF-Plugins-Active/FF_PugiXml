@@ -426,7 +426,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype_Auto(TArray<UFFPugiXml_Node*
 	}
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString NodeName, FString NodeValue, TMap<FString, FString> Attributes)
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, EPugiXmlAddTypes AddType, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, UFFPugiXml_Node* Anchor_Node, FString NodeName, FString NodeValue, TMap<FString, FString> Attributes)
 {
 	if (!IsValid(In_Doc))
 	{
@@ -441,7 +441,46 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, 
 
 		if (TargetNodeType == node_document || TargetNodeType == node_element)
 		{
-			Out_Node->Node = Parent_Node->Node.append_child(node_element);
+			switch (AddType)
+			{
+			case EPugiXmlAddTypes::Child_First:
+				Out_Node->Node = Parent_Node->Node.prepend_child(node_element);
+				break;
+
+			case EPugiXmlAddTypes::Child_Last:
+				Out_Node->Node = Parent_Node->Node.append_child(node_element);
+				break;
+			
+			case EPugiXmlAddTypes::Previous:
+				
+				if (IsValid(Anchor_Node))
+				{
+					Out_Node->Node = Parent_Node->Node.insert_child_before(node_element, Anchor_Node->Node);
+					break;
+				}
+
+				else
+				{
+					return false;
+				}
+				
+			case EPugiXmlAddTypes::After:
+				
+				if (IsValid(Anchor_Node))
+				{
+					Out_Node->Node = Parent_Node->Node.insert_child_after(node_element, Anchor_Node->Node);
+					break;
+				}
+
+				else
+				{
+					return false;
+				}
+			
+			default:
+				Out_Node->Node = Parent_Node->Node.append_child(node_element);
+				break;
+			}	
 		}
 
 		else
@@ -452,7 +491,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, 
 
 	else
 	{
-		if (In_Doc->SchemeElement)
+		if (IsValid(In_Doc->SchemeElement))
 		{
 			Out_Node->Node = In_Doc->SchemeElement->Node.append_child(node_element);
 		}
@@ -486,7 +525,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, 
 	return true;
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Comment(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString Comment)
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Comment(UFFPugiXml_Node*& Out_Node, EPugiXmlAddTypes AddType, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, UFFPugiXml_Node* Anchor_Node, FString Comment)
 {
 	if (!IsValid(In_Doc) || Comment.IsEmpty())
 	{
@@ -512,7 +551,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Comment(UFFPugiXml_Node*& Out_Node, 
 
 	else
 	{
-		if (In_Doc->SchemeElement)
+		if (IsValid(In_Doc->SchemeElement))
 		{
 			Out_Node->Node = In_Doc->SchemeElement->Node.append_child(node_comment);
 		}
@@ -526,7 +565,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Comment(UFFPugiXml_Node*& Out_Node, 
 	return Out_Node->Node.set_value(TCHAR_TO_UTF8(*Comment));
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Pi(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString NodeName, FString NodeValue)
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Pi(UFFPugiXml_Node*& Out_Node, EPugiXmlAddTypes AddType, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, UFFPugiXml_Node* Anchor_Node, FString NodeName, FString NodeValue)
 {
 	if (!IsValid(In_Doc))
 	{
@@ -552,7 +591,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Pi(UFFPugiXml_Node*& Out_Node, UFFPu
 
 	else
 	{
-		if (In_Doc->SchemeElement)
+		if (IsValid(In_Doc->SchemeElement))
 		{
 			Out_Node->Node = In_Doc->SchemeElement->Node.append_child(node_pi);
 		}
@@ -577,7 +616,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Pi(UFFPugiXml_Node*& Out_Node, UFFPu
 	}
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_pcdata(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString Value)
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_pcdata(UFFPugiXml_Node*& Out_Node, EPugiXmlAddTypes AddType, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, UFFPugiXml_Node* Anchor_Node, FString Value)
 {
 	if (!IsValid(In_Doc) || Value.IsEmpty())
 	{
@@ -603,7 +642,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_pcdata(UFFPugiXml_Node*& Out_Node, U
 
 	else
 	{
-		if (In_Doc->SchemeElement)
+		if (IsValid(In_Doc->SchemeElement))
 		{
 			Out_Node->Node = In_Doc->SchemeElement->Node.append_child(node_pcdata);
 		}
@@ -617,7 +656,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_pcdata(UFFPugiXml_Node*& Out_Node, U
 	return Out_Node->Node.set_value(TCHAR_TO_UTF8(*Value));
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_cdata(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString Value)
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_cdata(UFFPugiXml_Node*& Out_Node, EPugiXmlAddTypes AddType, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, UFFPugiXml_Node* Anchor_Node, FString Value)
 {
 	if (!IsValid(In_Doc))
 	{
@@ -643,7 +682,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_cdata(UFFPugiXml_Node*& Out_Node, UF
 
 	else
 	{
-		if (In_Doc->SchemeElement)
+		if (IsValid(In_Doc->SchemeElement))
 		{
 			Out_Node->Node = In_Doc->SchemeElement->Node.append_child(node_cdata);
 		}
@@ -1051,6 +1090,51 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Get_Attributes(TMap<FString, FString>& Out_At
 	{
 		return false;
 	}
+}
+
+bool UFF_PugiXmlBPLibrary::PugiXml_Get_Type(EPugiXmlDataTypes& Out_Types, UFFPugiXml_Node* Target_Node)
+{
+	if (!IsValid(Target_Node))
+	{
+		return false;
+	}
+
+	xml_node_type NodeType = Target_Node->Node.type();
+	switch (NodeType)
+	{
+	case pugi::node_null:
+		Out_Types = EPugiXmlDataTypes::Null;
+		break;
+	case pugi::node_document:
+		Out_Types = EPugiXmlDataTypes::Document;
+		break;
+	case pugi::node_element:
+		Out_Types = EPugiXmlDataTypes::Element;
+		break;
+	case pugi::node_pcdata:
+		Out_Types = EPugiXmlDataTypes::PCDATA;
+		break;
+	case pugi::node_cdata:
+		Out_Types = EPugiXmlDataTypes::CDATA;
+		break;
+	case pugi::node_comment:
+		Out_Types = EPugiXmlDataTypes::Comment;
+		break;
+	case pugi::node_pi:
+		Out_Types = EPugiXmlDataTypes::Pi;
+		break;
+	case pugi::node_declaration:
+		Out_Types = EPugiXmlDataTypes::Decleration;
+		break;
+	case pugi::node_doctype:
+		Out_Types = EPugiXmlDataTypes::Doctype;
+		break;
+	default:
+		Out_Types = EPugiXmlDataTypes::None;
+		break;
+	}
+
+	return true;
 }
 
 bool UFF_PugiXmlBPLibrary::PugiXml_Check_Empty(bool bIsEmpty, UObject* Target_Object)

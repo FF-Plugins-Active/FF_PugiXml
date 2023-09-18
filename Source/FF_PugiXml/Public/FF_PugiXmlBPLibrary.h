@@ -12,6 +12,8 @@
 
 #include "Kismet/BlueprintFunctionLibrary.h"
 
+#include "FF_PugiXml_Enums.h"
+
 THIRD_PARTY_INCLUDES_START
 //#define PUGIXML_WCHAR_MODE
 //#define pugi pugiw
@@ -110,20 +112,35 @@ class UFF_PugiXmlBPLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Auto Doctype", Keywords = "pugixml, xml, document, node, add, doctype, auto"), Category = "FF_PugiXml|Write")
 	static FF_PUGIXML_API bool PugiXml_Node_Add_Doctype_Auto(TArray<UFFPugiXml_Node*>& Out_Nodes, UFFPugiXml_Doc* In_Doc, FString DoctypeName, bool bAddAttributes);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node Element", Tooltip = "", Keywords = "pugixml, xml, document, node, add, element"), Category = "FF_PugiXml|Write")
-	static FF_PUGIXML_API bool PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString NodeName, FString NodeValue, TMap<FString, FString> Attributes);
+	/**
+	* @param Anchor_Node This should be child of "Parent Node", if you want to insert something.
+	*/
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node Element", Keywords = "pugixml, xml, document, node, add, element"), Category = "FF_PugiXml|Write")
+	static FF_PUGIXML_API bool PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, EPugiXmlAddTypes AddType, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, UFFPugiXml_Node* Anchor_Node, FString NodeName, FString NodeValue, TMap<FString, FString> Attributes);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node Comment", Tooltip = "", Keywords = "pugixml, xml, document, node, add, comment"), Category = "FF_PugiXml|Write")
-	static FF_PUGIXML_API bool PugiXml_Node_Add_Comment(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString Comment);
+	/**
+	* @param Anchor_Node This should be child of "Parent Node", if you want to insert something.
+	*/
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node Comment", Keywords = "pugixml, xml, document, node, add, comment"), Category = "FF_PugiXml|Write")
+	static FF_PUGIXML_API bool PugiXml_Node_Add_Comment(UFFPugiXml_Node*& Out_Node, EPugiXmlAddTypes AddType, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, UFFPugiXml_Node* Anchor_Node, FString Comment);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node Processing Instructions", Tooltip = "", Keywords = "pugixml, xml, document, node, add, pi, processing, instructions"), Category = "FF_PugiXml|Write")
-	static FF_PUGIXML_API bool PugiXml_Node_Add_Pi(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString NodeName, FString NodeValue);
+	/**
+	* @param Anchor_Node This should be child of "Parent Node", if you want to insert something.
+	*/
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node Processing Instructions", Keywords = "pugixml, xml, document, node, add, pi, processing, instructions"), Category = "FF_PugiXml|Write")
+	static FF_PUGIXML_API bool PugiXml_Node_Add_Pi(UFFPugiXml_Node*& Out_Node, EPugiXmlAddTypes AddType, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, UFFPugiXml_Node* Anchor_Node, FString NodeName, FString NodeValue);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node Plain Character", Tooltip = "", Keywords = "pugixml, xml, document, node, add, pcdata, plain, character"), Category = "FF_PugiXml|Write")
-	static FF_PUGIXML_API bool PugiXml_Node_Add_pcdata(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString Value);
+	/**
+	* @param Anchor_Node This should be child of "Parent Node", if you want to insert something.
+	*/
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node Plain Character", Keywords = "pugixml, xml, document, node, add, pcdata, plain, character"), Category = "FF_PugiXml|Write")
+	static FF_PUGIXML_API bool PugiXml_Node_Add_pcdata(UFFPugiXml_Node*& Out_Node, EPugiXmlAddTypes AddType, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, UFFPugiXml_Node* Anchor_Node, FString Value);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node CDATA", Tooltip = "", Keywords = "pugixml, xml, document, node, add,  cdata"), Category = "FF_PugiXml|Write")
-	static FF_PUGIXML_API bool PugiXml_Node_Add_cdata(UFFPugiXml_Node*& Out_Node, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, FString Value);
+	/**
+	* @param Anchor_Node This should be child of "Parent Node", if you want to insert something.
+	*/
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node CDATA", Keywords = "pugixml, xml, document, node, add,  cdata"), Category = "FF_PugiXml|Write")
+	static FF_PUGIXML_API bool PugiXml_Node_Add_cdata(UFFPugiXml_Node*& Out_Node, EPugiXmlAddTypes AddType, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, UFFPugiXml_Node* Anchor_Node, FString Value);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Remove Node 1", Tooltip = "It has to be direct child/parent not grand-children.", Keywords = "pugixml, xml, document, node, remove"), Category = "FF_PugiXml|Write")
 	static FF_PUGIXML_API bool PugiXml_Node_Remove_1(UPARAM(ref)UObject*& Source, UPARAM(ref)UFFPugiXml_Node*& Delete_Target);
@@ -160,6 +177,9 @@ class UFF_PugiXmlBPLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Get Attributes", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, attribute, attributes"), Category = "FF_PugiXml|Parse")
 	static FF_PUGIXML_API bool PugiXml_Get_Attributes(TMap<FString, FString>& Out_Attributes, UFFPugiXml_Node* Target_Node);
+
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Get Type", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, type"), Category = "FF_PugiXml|Parse")
+	static FF_PUGIXML_API bool PugiXml_Get_Type(EPugiXmlDataTypes& Out_Types, UFFPugiXml_Node* Target_Node);
 
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "Pugixml - Check If Empty", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, check, empty"), Category = "FF_PugiXml|Parse")
 	static FF_PUGIXML_API bool PugiXml_Check_Empty(bool bIsEmpty, UObject* Target_Object);
