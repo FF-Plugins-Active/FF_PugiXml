@@ -14,7 +14,7 @@ https://github.com/zeux/pugixml
 
 # NOTE
 * We don't use Rider. So, we can't help you if you have a problem about adding external plugins to your build list.
-* If there is a problem about out PugiXml implementation, feel free to give hint or even pull request.
+* If there is a problem about our PugiXml implementation, feel free to give hint or even pull request.
 * We can't help if you have installation problems. Because our plugin works on all of our computers in our company and it doesn't have any dependency or tricky setup.
 * If you see weird "variable is not valid" like problems and variables have underlines, it means you couldn't install plugin, correctly.
 * Look at plugin's "Content" folder before using it. It has a "BP_Template_PugiXml" actor and it contais sample mechanics.
