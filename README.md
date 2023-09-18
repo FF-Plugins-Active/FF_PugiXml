@@ -6,11 +6,11 @@ https://github.com/zeux/pugixml
 # USAGE
 * Create a C++ project.
 * Create a folder which named "Plugins"
-* Copy plugin to that folder. Name should be FF_PugiXml.
-* Delete Binaries, Intermediate and Saved folder of your project.
-* Right click to your .uproject and select "Generate Visual Studio Project Files"
-* Open your project's .sln file
-* Press F5. It will build plugin.
+* Copy plugin to that folder. Name should be "FF_PugiXml".
+* Delete "Binaries, Intermediate and Saved" folders of your project.
+* Right click to your ".uproject" and select "Generate Visual Studio Project Files"
+* Open your project's ".sln" file
+* Press "F5". It will build plugin. After that, You can copy it to your blueprint only projects.
 
 # NOTE
 * We don't use Rider. So, we can't help you if you have a problem about adding external plugins to your build list.
