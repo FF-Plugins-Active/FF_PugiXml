@@ -131,22 +131,22 @@ class UFF_PugiXmlBPLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Remove Node 2", Tooltip = "It automatically finds parent.", Keywords = "pugixml, xml, document, node, remove"), Category = "FF_PugiXml|Write")
 	static FF_PUGIXML_API bool PugiXml_Node_Remove_2(UPARAM(ref)UFFPugiXml_Node*& Delete_Target);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Get Children", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, child, children"), Category = "FF_PugiXml|Parse")
-	static FF_PUGIXML_API bool PugiXml_Get_Children(TArray<UFFPugiXml_Node*>& Out_Children, UObject* Target_Object);
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Get Direct Children", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, child, children, direct"), Category = "FF_PugiXml|Parse")
+	static FF_PUGIXML_API bool PugiXml_Get_Children_Direct(TArray<UFFPugiXml_Node*>& Out_Children, UObject* Target_Object);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Get Children Recursive", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, child, children, all, recursive"), Category = "FF_PugiXml|Parse")
 	static FF_PUGIXML_API bool PugiXml_Get_Children_Recursive(TArray<UFFPugiXml_Node*>& Out_Children, UObject* Target_Object);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Get First Child", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, child, children, first"), Category = "FF_PugiXml|Parse")
-	static FF_PUGIXML_API bool PugiXml_Get_Border_Children(UFFPugiXml_Node*& Out_Child, UObject* Target_Object, bool bIsLast);
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Get Border Children", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, child, children, first, last, border"), Category = "FF_PugiXml|Parse")
+	static FF_PUGIXML_API bool PugiXml_Get_Children_Border(UFFPugiXml_Node*& Out_Child, UObject* Target_Object, bool bIsLast);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Get First Child", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, child, children, first"), Category = "FF_PugiXml|Parse")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Get Siblings", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, child, children, sibling"), Category = "FF_PugiXml|Parse")
 	static FF_PUGIXML_API bool PugiXml_Get_Siblings(UFFPugiXml_Node*& Out_Sibling, UFFPugiXml_Node* Target_Node, bool bIsPrevious);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Find Child", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, child, children, find"), Category = "FF_PugiXml|Parse")
-	static FF_PUGIXML_API bool PugiXml_Find_Child(UFFPugiXml_Node*& Out_Sibling, UObject* Target_Object, FString Child_Name);
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Find Child by Name", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, child, children, find, by, name"), Category = "FF_PugiXml|Parse")
+	static FF_PUGIXML_API bool PugiXml_Find_Child_By_Name(UFFPugiXml_Node*& Out_Sibling, UObject* Target_Object, FString Child_Name);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Find Child by Attribute", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, child, children, find, attribute"), Category = "FF_PugiXml|Parse")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Find Child by Attribute", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, child, children, find, by, attribute"), Category = "FF_PugiXml|Parse")
 	static FF_PUGIXML_API bool PugiXml_Find_Child_By_Attribute(UFFPugiXml_Node*& Out_Sibling, UObject* Target_Object, FString Attribute_Name, FString Attribute_Value);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Find Parent", Tooltip = "", Keywords = "pugixml, xml, document, get, node, read, parent, find"), Category = "FF_PugiXml|Parse")

@@ -287,6 +287,8 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype_Auto(TArray<UFFPugiXml_Node*
 	Node_Delimiter_DTD->Node = In_Doc->Document.insert_child_after(node_comment, Decleration);
 	bool Result_Delimiter_DTD = Node_Delimiter_DTD->Node.set_value("DTD");
 
+	// Calculate ELEMENTS and ATTLIST
+
 	TArray<UFFPugiXml_Node*> Pool;
 	Callback_Children(In_Doc->Document.root(), Pool);
 
@@ -391,10 +393,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype_Auto(TArray<UFFPugiXml_Node*
 		String_Attributes += EachAttributeString;
 	}
 
-	/*
-	* DOCTYPE CONTENTS -> VALUE DATA
-	*/
-
+	// SET DTD VALUES
 	FString DTD_Value = "";
 	DTD_Value += DoctypeName + "\n";
 	DTD_Value += "[\n";
@@ -724,7 +723,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Remove_2(UPARAM(ref)UFFPugiXml_Node*& De
 	}
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Get_Children(TArray<UFFPugiXml_Node*>& Out_Children, UObject* Target_Object)
+bool UFF_PugiXmlBPLibrary::PugiXml_Get_Children_Direct(TArray<UFFPugiXml_Node*>& Out_Children, UObject* Target_Object)
 {
 	if (!IsValid(Target_Object))
 	{
@@ -796,7 +795,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Get_Children_Recursive(TArray<UFFPugiXml_Node
 	return true;
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Get_Border_Children(UFFPugiXml_Node*& Out_Child, UObject* Target_Object, bool bIsLast)
+bool UFF_PugiXmlBPLibrary::PugiXml_Get_Children_Border(UFFPugiXml_Node*& Out_Child, UObject* Target_Object, bool bIsLast)
 {
 	if (!IsValid(Target_Object))
 	{
@@ -859,7 +858,7 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Get_Siblings(UFFPugiXml_Node*& Out_Sibling, U
 	return true;
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Find_Child(UFFPugiXml_Node*& Out_Sibling, UObject* Target_Object, FString Child_Name)
+bool UFF_PugiXmlBPLibrary::PugiXml_Find_Child_By_Name(UFFPugiXml_Node*& Out_Sibling, UObject* Target_Object, FString Child_Name)
 {
 	if (!IsValid(Target_Object))
 	{
