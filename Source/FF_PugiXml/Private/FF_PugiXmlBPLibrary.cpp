@@ -371,11 +371,10 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype_Auto(TArray<UFFPugiXml_Node*
 	}
 
 	FString String_Elements;
-	TArray<FString> Keys_Elements;
-	MAP_Elements.GenerateKeyArray(Keys_Elements);
-	for (int32 Index_Elements = 0; Index_Elements < Keys_Elements.Num(); Index_Elements++)
+
+	for (TPair<FString, FString>& Pair_Elements : MAP_Elements)
 	{
-		FString EachElement = "<!ELEMENT " + Keys_Elements[Index_Elements] + " (" + *MAP_Elements.Find(Keys_Elements[Index_Elements]) + ")>\n";
+		FString EachElement = "<!ELEMENT " + Pair_Elements.Key + " (" + Pair_Elements.Value + ")>\n";
 		String_Elements += EachElement;
 	}
 
@@ -511,14 +510,9 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, 
 		Out_Node->Node.append_child(node_pcdata).set_value(TCHAR_TO_UTF8(*NodeValue));
 	}
 
-	TArray<FString> Attribute_Names;
-	In_Attributes.GenerateKeyArray(Attribute_Names);
-
-	for (int32 Index_Attributes = 0; Index_Attributes < Attribute_Names.Num(); Index_Attributes++)
+	for (TPair<FString, FString>& Pair_Attributes : In_Attributes)
 	{
-		FString AttributeName = Attribute_Names[Index_Attributes];
-		FString AttributeValue = *In_Attributes.Find(AttributeName);
-		Out_Node->Node.append_attribute(TCHAR_TO_UTF8(*AttributeName)) = TCHAR_TO_UTF8(*AttributeValue);
+		Out_Node->Node.append_attribute(TCHAR_TO_UTF8(*Pair_Attributes.Key)) = TCHAR_TO_UTF8(*Pair_Attributes.Value);
 	}
 
 	return true;
@@ -1380,14 +1374,9 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Set_Attributes(UFFPugiXml_Node* Target_Node, 
 		return false;
 	}
 
-	TArray<FString> Attribute_Names;
-	In_Attributes.GenerateKeyArray(Attribute_Names);
-
-	for (int32 Index_Attributes = 0; Index_Attributes < Attribute_Names.Num(); Index_Attributes++)
+	for (TPair<FString, FString>& Pair_Attributes : In_Attributes)
 	{
-		FString AttributeName = Attribute_Names[Index_Attributes];
-		FString AttributeValue = *In_Attributes.Find(AttributeName);
-		bAddToStart ? Target_Node->Node.append_attribute(TCHAR_TO_UTF8(*AttributeName)) = TCHAR_TO_UTF8(*AttributeValue) : Target_Node->Node.prepend_attribute(TCHAR_TO_UTF8(*AttributeName)) = TCHAR_TO_UTF8(*AttributeValue);
+		bAddToStart ? Target_Node->Node.append_attribute(TCHAR_TO_UTF8(*Pair_Attributes.Key)) = TCHAR_TO_UTF8(*Pair_Attributes.Value) : Target_Node->Node.prepend_attribute(TCHAR_TO_UTF8(*Pair_Attributes.Key)) = TCHAR_TO_UTF8(*Pair_Attributes.Value);
 	}
 
 	return true;
