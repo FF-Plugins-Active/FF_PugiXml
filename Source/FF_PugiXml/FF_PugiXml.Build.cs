@@ -10,8 +10,11 @@ public class FF_PugiXml : ModuleRules
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        string Location_PugiXml = "../Source/FF_PugiXml/ThirdParty/pugixml";
-        PrivateIncludePaths.Add(Location_PugiXml);
+        PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+        bEnableExceptions = true;
+        bUseRTTI = true;
+
+        PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "ThirdParty", "pugixml"));
 
         PublicDependencyModuleNames.AddRange(
 			new string[]
