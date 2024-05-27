@@ -6,6 +6,7 @@
 *	PugiXml Documentations.
 *	https://pugixml.org/docs/manual.html
 *
+*	Engine/Plugins/Experimental/SerializationUtils/Source/XmlSerialization/XmlSerialization.Build.cs
 */
 
 #pragma once
@@ -17,7 +18,11 @@
 THIRD_PARTY_INCLUDES_START
 //#define PUGIXML_WCHAR_MODE
 //#define pugi pugiw
+
+// If you need to use MaterialX or Serialization utils, you need to disable this and open MaterialXFormat/PugiXML/pugixml.hpp
 #include "pugixml.hpp"
+
+//#include "MaterialXFormat/PugiXML/pugixml.hpp"
 THIRD_PARTY_INCLUDES_END
 
 #include "FF_PugiXmlBPLibrary.generated.h"
