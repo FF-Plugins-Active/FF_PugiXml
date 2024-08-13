@@ -3,14 +3,6 @@
 #include "FF_PugiXmlBPLibrary.h"
 #include "FF_PugiXml.h"
 
-// UE Includes.
-#include "Kismet/KismetStringLibrary.h"
-
-THIRD_PARTY_INCLUDES_START
-#include <sstream>
-#include <fstream>
-THIRD_PARTY_INCLUDES_END
-
 UFF_PugiXmlBPLibrary::UFF_PugiXmlBPLibrary(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {

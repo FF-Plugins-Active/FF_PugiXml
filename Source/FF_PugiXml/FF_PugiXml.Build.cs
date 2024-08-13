@@ -13,11 +13,7 @@ public class FF_PugiXml : ModuleRules
         bEnableExceptions = true;
         bUseRTTI = true;
 
-		// If you need to use MaterialX or Serialization utils, you need to disable this and activate "MaterialX" from PrivateDependencyModuleNames
         PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "ThirdParty", "pugixml"));
-
-        // for pugixml wchar support
-        // PrivateDefinitions.Add("PUGIXML_WCHAR_MODE"); 
 
         PublicDependencyModuleNames.AddRange(
 			new string[]
@@ -34,7 +30,6 @@ public class FF_PugiXml : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-                //"MaterialX",	// for PugiXML
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
@@ -45,5 +40,5 @@ public class FF_PugiXml : ModuleRules
 				// ... add any modules that your module loads dynamically here ...
 			}
 			);
-	}
+    }
 }
