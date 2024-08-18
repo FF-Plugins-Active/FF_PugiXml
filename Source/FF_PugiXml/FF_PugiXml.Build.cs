@@ -10,8 +10,13 @@ public class FF_PugiXml : ModuleRules
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
+        bEnableUndefinedIdentifierWarnings = false;
         bEnableExceptions = true;
-        bUseRTTI = true;
+
+        if (UnrealTargetPlatform.Win64 == Target.Platform)
+		{
+            bUseRTTI = true;
+        }
 
         PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "ThirdParty", "pugixml"));
 
