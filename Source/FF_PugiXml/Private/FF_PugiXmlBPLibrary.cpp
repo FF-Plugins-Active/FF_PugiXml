@@ -416,18 +416,18 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype_Auto(TArray<UFFPugiXml_Node*
 	}
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, EPugiXmlAddTypes AddType, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, UFFPugiXml_Node* Anchor_Node, FString NodeName, FString NodeValue, TMap<FString, FString> In_Attributes)
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Element(UFFPugiXml_Element*& Out_Node, EPugiXmlAddTypes AddType, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, UFFPugiXml_Node* Anchor_Node, FString NodeName, FString NodeValue, TMap<FString, FString> In_Attributes)
 {
 	if (!IsValid(In_Doc))
 	{
 		return false;
 	}
 
-	Out_Node = NewObject<UFFPugiXml_Node>();
+	Out_Node = NewObject<UFFPugiXml_Element>();
 
 	if (IsValid(Parent_Node))
 	{
-		xml_node_type TargetNodeType = Parent_Node->Node.type();
+		const xml_node_type TargetNodeType = Parent_Node->Node.type();
 
 		if (TargetNodeType == node_document || TargetNodeType == node_element)
 		{
@@ -499,7 +499,8 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, 
 
 	if (!NodeValue.IsEmpty())
 	{
-		Out_Node->Node.append_child(node_pcdata).set_value(TCHAR_TO_UTF8(*NodeValue));
+		Out_Node->Value_Node = Out_Node->Node.append_child(node_pcdata);
+		Out_Node->Value_Node.set_value(TCHAR_TO_UTF8(*NodeValue));
 	}
 
 	for (TPair<FString, FString>& Pair_Attributes : In_Attributes)
@@ -1339,13 +1340,23 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Set_Value(UFFPugiXml_Node* Target_Node, FStri
 		return false;
 	}
 
-	xml_node_type NodeType = Target_Node->Node.type();
-	if (NodeType != node_element && NodeType != node_pi && NodeType != node_pcdata && NodeType != node_cdata && NodeType != node_comment)
+	const xml_node_type NodeType = Target_Node->Node.type();
+	UFFPugiXml_Element* Temp_Element = Cast<UFFPugiXml_Element>(Target_Node);
+
+	if (NodeType == node_element && IsValid(Temp_Element))
+	{
+		return Temp_Element->Value_Node.set_value(TCHAR_TO_UTF8(*In_Value));
+	}
+
+	else if (NodeType == node_pi && NodeType == node_pcdata && NodeType == node_cdata && NodeType == node_comment)
+	{
+		return Target_Node->Node.set_value(TCHAR_TO_UTF8(*In_Value));
+	}
+
+	else
 	{
 		return false;
 	}
-
-	return Target_Node->Node.set_value(TCHAR_TO_UTF8(*In_Value));
 }
 
 bool UFF_PugiXmlBPLibrary::PugiXml_Set_Attributes(UFFPugiXml_Node* Target_Node, bool bAddToStart, TMap<FString, FString> In_Attributes)

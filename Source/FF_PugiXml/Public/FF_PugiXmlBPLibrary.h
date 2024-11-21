@@ -30,6 +30,17 @@ public:
 };
 
 UCLASS(BlueprintType)
+class FF_PUGIXML_API UFFPugiXml_Element : public UFFPugiXml_Node
+{
+	GENERATED_BODY()
+
+public:
+
+	xml_node Value_Node;
+
+};
+
+UCLASS(BlueprintType)
 class FF_PUGIXML_API UFFPugiXml_Doc : public UObject
 {
 	GENERATED_BODY()
@@ -98,7 +109,7 @@ class UFF_PugiXmlBPLibrary : public UBlueprintFunctionLibrary
 	* @param Anchor_Node (Optional and can be nullptr): This should be one of children of "Parent Node" and you should use it only if you want to use "insert" features.
 	*/
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Pugixml - Add Node Element", Keywords = "pugixml, xml, document, node, add, element"), Category = "Frozen Forest|FF_PugiXml|Write")
-	static FF_PUGIXML_API bool PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, EPugiXmlAddTypes AddType, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, UFFPugiXml_Node* Anchor_Node, FString NodeName, FString NodeValue, TMap<FString, FString> In_Attributes);
+	static FF_PUGIXML_API bool PugiXml_Node_Add_Element(UFFPugiXml_Element*& Out_Node, EPugiXmlAddTypes AddType, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, UFFPugiXml_Node* Anchor_Node, FString NodeName, FString NodeValue, TMap<FString, FString> In_Attributes);
 
 	/**
 	* @param Parent_Node (Optional and can be nullptr): If this is nullptr, added node will be direct chil of root or scheme element (if it is valid.)
