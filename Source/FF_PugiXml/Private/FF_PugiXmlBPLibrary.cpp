@@ -416,14 +416,14 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Doctype_Auto(TArray<UFFPugiXml_Node*
 	}
 }
 
-bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Element(UFFPugiXml_Element*& Out_Node, EPugiXmlAddTypes AddType, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, UFFPugiXml_Node* Anchor_Node, FString NodeName, FString NodeValue, TMap<FString, FString> In_Attributes)
+bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Element(UFFPugiXml_Node*& Out_Node, EPugiXmlAddTypes AddType, UFFPugiXml_Doc* In_Doc, UFFPugiXml_Node* Parent_Node, UFFPugiXml_Node* Anchor_Node, FString NodeName, FString NodeValue, TMap<FString, FString> In_Attributes)
 {
 	if (!IsValid(In_Doc))
 	{
 		return false;
 	}
 
-	Out_Node = NewObject<UFFPugiXml_Element>();
+	Out_Node = NewObject<UFFPugiXml_Node>();
 
 	if (IsValid(Parent_Node))
 	{
@@ -499,8 +499,8 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_Element(UFFPugiXml_Element*& Out_Nod
 
 	if (!NodeValue.IsEmpty())
 	{
-		Out_Node->Value_Node = Out_Node->Node.append_child(node_pcdata);
-		Out_Node->Value_Node.set_value(TCHAR_TO_UTF8(*NodeValue));
+		xml_node Value_Node = Out_Node->Node.append_child(node_pcdata);
+		Value_Node.set_value(TCHAR_TO_UTF8(*NodeValue));
 	}
 
 	for (TPair<FString, FString>& Pair_Attributes : In_Attributes)
@@ -691,7 +691,18 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Node_Add_pcdata(UFFPugiXml_Node*& Out_Node, E
 
 	if (IsValid(Parent_Node))
 	{
-		xml_node_type TargetNodeType = Parent_Node->Node.type();
+		const xml_node_type TargetNodeType = Parent_Node->Node.type();
+		
+		if (TargetNodeType == node_element)
+		{
+			for (xml_node Each_Child : Parent_Node->Node.children())
+			{
+				if (Each_Child.type() == node_pcdata)
+				{
+					return false;
+				}
+			}
+		}
 
 		if (TargetNodeType == node_document || TargetNodeType == node_element)
 		{
@@ -1339,16 +1350,32 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Set_Value(UFFPugiXml_Node* Target_Node, FStri
 	{
 		return false;
 	}
+	
+	xml_node TempNode = Target_Node->Node;
+	const xml_node_type NodeType = TempNode.type();
 
-	const xml_node_type NodeType = Target_Node->Node.type();
-	UFFPugiXml_Element* Temp_Element = Cast<UFFPugiXml_Element>(Target_Node);
-
-	if (NodeType == node_element && IsValid(Temp_Element))
+	if (NodeType == node_element)
 	{
-		return Temp_Element->Value_Node.set_value(TCHAR_TO_UTF8(*In_Value));
+		xml_node Value_Node = xml_node();
+
+		for (xml_node Each_Child : TempNode.children())
+		{
+			if (Each_Child.type() == node_pcdata)
+			{
+				Value_Node = Each_Child;
+				break;
+			}
+		}
+
+		if (!Value_Node)
+		{
+			Value_Node = TempNode.append_child(node_pcdata);
+		}
+
+		return Value_Node.set_value(TCHAR_TO_UTF8(*In_Value));
 	}
 
-	else if (NodeType == node_pi && NodeType == node_pcdata && NodeType == node_cdata && NodeType == node_comment)
+	else if (NodeType == node_pi || NodeType == node_pcdata || NodeType == node_cdata || NodeType == node_comment)
 	{
 		return Target_Node->Node.set_value(TCHAR_TO_UTF8(*In_Value));
 	}
