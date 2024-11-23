@@ -13,8 +13,11 @@ https://github.com/zeux/pugixml
 * Press "F5". It will build plugin. After that, You can copy it to your blueprint only projects.
 
 # NOTE
-* We don't use Rider. So, we can't help you if you have a problem about adding external plugins to your build list.
-* If there is a problem about our PugiXml implementation, feel free to give hint or even pull request.
-* We can't help if you have installation problems. Because our plugin works on all of our computers in our company and it doesn't have any dependency or tricky setup.
+* We don't use Rider. So, we can't help about IDE specific problems.
+* If your problem is about "PugiXml's itself", you need to open your issue in there. Not here.
+* If your problem is about "our implementation", you can open an issue about it.
+* We don't support older engine versions and we update engine version after "one month of its release".
+* Our plugin doesn't have any dependency or tricky setup. If you don't know how can you install a plugin to UE5, we can't help you.
 * If you see weird "variable is not valid" like problems and variables have underlines, it means you couldn't install plugin, correctly.
 * Look at plugin's "Content" folder before using it. It has a "BP_Template_PugiXml" actor and it contais sample mechanics.
+* You "can" use this plugin in your commercial products but you "CAN NOT share this plugin" in marketplaces such as Gumroad or Unreal Marketplace/Fab.
