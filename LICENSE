@@ -1,0 +1,35 @@
+# Business Source License 1.1
+
+This Business Source License (the "License") applies to the source code in this repository, as specified by [Your Name or Organization] (the "Licensor"). 
+
+## 1. Licensed Grant
+Subject to the terms of this License, Licensor hereby grants you, free of charge, the right to use, reproduce, modify, and create derivative works of the software in this repository (the "Software"), solely for non-restricted use cases.
+
+## 2. Restricted Use
+You may **not** use the Software to provide or operate a product or service that competes directly with **FF_PUGIXML*. Examples of competing use cases include, but are not limited to:
+- Share it on game development marketplaces.
+
+For a commercial license that allows restricted use, please contact [frozenforeststduio@gmail.com].
+
+## 3. Change Date
+The restrictions outlined in Section 2 above will terminate after 4 years after its **archived**. On the Change Date, the Software will be made available under the **MIT License**.
+
+## 4. Other Terms
+Except as expressly stated herein, no other rights or licenses are granted under this License, whether by implication, estoppel, or otherwise. All rights not expressly granted are reserved by Licensor.
+
+## 5. Warranty Disclaimer
+THE SOFTWARE IS PROVIDED "AS IS," WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+---
+
+**FAQs**
+
+1. **What is a "competing use case"?**
+   Any use of the Software that creates or powers a product/service that competes with **FF_PUGIXML** such as sharing it on Gumroad or Unreal Engine Marketplaces/Fab like platforms.
+   But you can use it in your commercial products.
+
+2. **Can I use this Software for personal or educational purposes?**
+   Yes, as long as it does not fall under a restricted use case.
+
+3. **When will the Software be fully open source?**
+   After 4 years after we archived this project.
