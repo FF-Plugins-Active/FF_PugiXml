@@ -3,15 +3,19 @@
 This Business Source License (the "License") applies to the source code in this repository, as specified by [ffreality] (the "Licensor"). 
 
 ## 1. Licensed Grant
-Subject to the terms of this License, **the Licensor** hereby grants you, free of charge, the right to use, **reproduce, modify, and create derivative works** of **FF_PugiXml** plugin in this repository (the "Plugin"), solely for non-restricted use cases.
+Subject to the terms of this License, **the Licensor** hereby grants you, free of charge,
+- the right to use in commercial, non-commercial and academic products,
+- **reproduce, modify, and create derivative works** of **FF_PugiXml** plugin in this repository (the "Plugin"),
+solely for non-restricted use cases.
 
-Reproduce, modify and create derivate works mean merely create a **fork** of this repository while pointing reference to original repository.
+Reproduce, modify and create derivate works mean merely create a **fork** of this repository while pointing reference to original repository while preserving license terms **without selling** it directly.
 
 ## 2. Restricted Use
 You may **not** use **the Plugin** to provide or operate a product or service that competes directly with **the Plugin**.
 
 Examples of competing use cases include, but are not limited to:
-- Share this plugin on any game development marketplaces.
+- Sharing this plugin on any game development marketplaces with profit purpose.
+- Sharing this plugin on any game development marketplace with non-profit purpose but without credits.
 - Publishing this plugin on any code collaboration and/or public repository storage platform without forking or giving reference to original repository.
 - Changing license
 
