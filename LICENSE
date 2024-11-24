@@ -37,8 +37,9 @@ THE SOFTWARE IS PROVIDED "AS IS," WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 1. **What is a "competing use case"?**
    Any use of the Software that creates or powers a product/service that competes with **FF_PUGIXML** such as
-   - sharing it on Gumroad, Unreal Engine Marketplaces/Fab and etc.
-   - publishing on GitHub, GitLab or Bitbucket like public repository platform without forking or giving reference.
+   - sharing it on Gumroad, Unreal Engine Marketplace/Fab and etc. with price tag.
+   - sharing it on Gumroad, Unreal Engine Marketplace/Fab and etc. as free but without reference.
+   - publishing on GitHub, GitLab or Bitbucket like public repository platform without forking or giving reference. As it      like the actual developer of the plugin is you.
 
    But you can use it in your commercial products such as
    - a commercial game or simulation project with XML processing feature.
