@@ -20,4 +20,4 @@ https://github.com/zeux/pugixml
 * Our plugin doesn't have any dependency or tricky setup. If you don't know how can you install a plugin to UE5, we can't help you.
 * If you see weird "variable is not valid" like problems and variables have underlines, it means you couldn't install plugin, correctly.
 * Look at plugin's "Content" folder before using it. It has a "BP_Template_PugiXml" actor and it contais sample mechanics.
-* You "can" use this plugin in your commercial products but you "CAN NOT share this plugin" in marketplaces such as Gumroad or Unreal Marketplace/Fab.
+* You "can" use this plugin in your commercial products but you "CAN NOT share this plugin" in marketplaces such as Gumroad or Unreal Marketplace/Fab. Please look at "License" section.
