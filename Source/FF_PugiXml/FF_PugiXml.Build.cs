@@ -10,7 +10,7 @@ public class FF_PugiXml : ModuleRules
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        bEnableUndefinedIdentifierWarnings = false;
+        UndefinedIdentifierWarningLevel = WarningLevel.Off;
         bEnableExceptions = true;
 
         if (UnrealTargetPlatform.Win64 == Target.Platform)
