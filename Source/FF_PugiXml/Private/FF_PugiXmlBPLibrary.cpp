@@ -1155,6 +1155,8 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Get_Attributes(TMap<FString, FString>& Out_At
 		return false;
 	}
 
+	TMap<FString, FString> Temp_Attributes;
+
 	xml_node_type TargetNodeType = Target_Node->Node.type();
 	if (TargetNodeType == node_element || TargetNodeType == node_declaration)
 	{
@@ -1165,15 +1167,17 @@ bool UFF_PugiXmlBPLibrary::PugiXml_Get_Attributes(TMap<FString, FString>& Out_At
 				FString Attribute_Name = Each_Attribute.name();
 				FString Attribute_Value = Each_Attribute.value();
 
-				Out_Attributes.Add(Attribute_Name, Attribute_Value);
+				Temp_Attributes.Add(Attribute_Name, Attribute_Value);
 			}
 		}
 
+		Out_Attributes = Temp_Attributes;
 		return true;
 	}
 	
 	else
 	{
+		Out_Attributes.Empty();
 		return false;
 	}
 }
